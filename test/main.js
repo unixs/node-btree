@@ -8,3 +8,22 @@ console.log("node-mixin test.");
 console.log(ext.hello());
 require('assert')
   .equal(ext.hello(), "hello");
+
+
+function extend(mixins, save_orig) {
+  save_orig = save_orig || false;
+
+  var self = this;
+
+  mixins.forEach(function (mixin) {
+    Object.getOwnPropertyNames(mixin.prototype).forEach(function (name) {
+      if (name != 'constructor') {
+        if (save_orig) {
+          self.prototype['__orig_' + name] = self.prototype[name];
+        }
+        self.prototype[name] = mixin.prototype[name];
+      }
+    });
+  });
+}
+
