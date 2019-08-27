@@ -1,0 +1,33 @@
+{
+  "name": "node-mixin",
+  "version": "0.1.0",
+  "description": "Node.js native N-API mixin implementation",
+  "main": "main.js",
+  "scripts": {
+    "install": "node-pre-gyp install --fallback-to-build",
+    "test": "node test/main.js"
+  },
+  "binary": {
+    "module_name": "node_mixin",
+    "module_path": "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
+    "remote_path": "./{module_name}/v{version}/{configuration}/",
+    "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
+    "host": "https://node-pre-gyp-tests.s3-us-west-1.amazonaws.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unixs/node-mixin.git"
+  },
+  "author": "Alexander Feodorov <aleksandr_fedorov2@epam.com>",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/unixs/node-mixin/issues"
+  },
+  "homepage": "https://github.com/unixs/node-mixin#readme",
+  "dependencies": {
+    "node-pre-gyp": "~0.13.0"
+  },
+  "devDependencies": {
+    "aws-sdk": "~2.518.0"
+  }
+}

@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/src/include/**",
+                "/usr/include/node"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang-7",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "compilerArgs": [
+                "-O0",
+                "-Wall",
+                "-Wextra",
+                "-std=C11"
+            ],
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
