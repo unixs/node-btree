@@ -1,8 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <node_api.h>
 #include "include/common.h"
 
 napi_value init(napi_env env, napi_value exports);
+
+napi_ref constructor;
 
 NAPI_MODULE(NODE_GYP_MODULE_NAME, init);
 
@@ -20,8 +23,16 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   printf("Constructor called.\n");
 
   napi_value instance;
+  napi_ref ref;
 
-  NAPI_CALL(env, napi_create_object(env, &instance));
+  size_t argc = 1;
+  napi_value args[1];
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, args, &instance, NULL));
+
+  int *native = (int *) malloc(sizeof(int));
+  *native = 100500;
+
+  // NAPI_CALL(env, napi_wrap(env, instance, native, NULL, NULL, &ref));
 
   return instance;
 }
@@ -36,6 +47,8 @@ void initGlobals(napi_env env) {
   napi_value BTreeClass;
 
   NAPI_CALL(env, napi_define_class(env, "BTree", NAPI_AUTO_LENGTH, BTreeConstructor, NULL, 0, NULL, &BTreeClass));
+
+  NAPI_CALL(env, napi_create_reference(env, BTreeClass, 1, &constructor));
 
   napi_property_descriptor desc[] = {
     {
