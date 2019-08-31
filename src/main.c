@@ -26,6 +26,7 @@ napi_value esBTreeHeight(napi_env env, napi_callback_info cbInfo) {
 }
 
 void freeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
+  // BUG: Incorrect memory free.
   free(finalize_data);
 }
 
