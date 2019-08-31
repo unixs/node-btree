@@ -1,2 +1,2 @@
-# node-mixin
-Node.js native N-API mixin implementation
+# node-btree
+Node.js native BTree implementation
