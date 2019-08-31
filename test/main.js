@@ -2,7 +2,7 @@ const binary = require('node-pre-gyp');
 const path = require('path');
 const binding_path = binary.find(path.resolve(path.join(__dirname, '../package.json')));
 
-const ext = require("../lib/binding/Debug/node-v72-linux-x64/node_mixin.node");
+const ext = require("../lib/binding/Debug/node-v64-linux-x64/node_btree.node");
 
 console.log("node-mixin test.");
 
@@ -30,8 +30,19 @@ function extend(mixins, save_orig) {
 
 console.log(BTree);
 
+function comparator(a, b) {
+  if (a > b) {
+    return +1;
+  }
+  else if (a < b) {
+    return -1;
+  }
+  else {
+    return 0;
+  }
+}
 
-const tree = new BTree();
+const tree = new BTree(comparator);
 
 console.log(tree);
 

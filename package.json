@@ -1,5 +1,5 @@
 {
-  "name": "node-mixin",
+  "name": "node-btree",
   "version": "0.1.0",
   "description": "Node.js native N-API mixin implementation",
   "main": "main.js",
@@ -8,7 +8,7 @@
     "test": "node test/main.js"
   },
   "binary": {
-    "module_name": "node_mixin",
+    "module_name": "node_btree",
     "module_path": "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
     "remote_path": "./{module_name}/v{version}/{configuration}/",
     "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/unixs/node-mixin.git"
+    "url": "git+https://github.com/unixs/node-btree.git"
   },
   "author": "Alexander Feodorov <aleksandr_fedorov2@epam.com>",
   "license": "LGPL-3.0",
   "bugs": {
-    "url": "https://github.com/unixs/node-mixin/issues"
+    "url": "https://github.com/unixs/node-btree/issues"
   },
-  "homepage": "https://github.com/unixs/node-mixin#readme",
+  "homepage": "https://github.com/unixs/node-btree#readme",
   "dependencies": {
     "node-pre-gyp": "~0.13.0"
   },

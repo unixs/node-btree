@@ -5,6 +5,12 @@
     {
       "target_name": "<(module_name)",
       "sources": [ "src/main.c" ],
+      "include_dirs": [
+        '<!@(pkg-config --cflags glib-2.0 | sed s/-I//g)'
+      ],
+      "libraries": [
+        '<!@(pkg-config glib-2.0 --libs)'
+      ]
     },
     {
       "target_name": "action_after_build",

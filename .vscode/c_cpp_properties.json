@@ -4,7 +4,10 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/src/include/**",
-                "/usr/include/node"
+                "/usr/include/node",
+                "/usr/include",
+                "/usr/include/glib-2.0",
+                "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang-7",

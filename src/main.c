@@ -2,6 +2,15 @@
 #include <stdlib.h>
 #include <node_api.h>
 #include "include/common.h"
+#include <glib.h>
+
+typedef struct {
+  napi_value comparator
+} BTree_t;
+
+gint nativeComparator(gconstpointer a, gconstpointer b) {
+  return 0;
+}
 
 napi_value init(napi_env env, napi_value exports);
 
@@ -22,19 +31,44 @@ napi_value __hello(napi_env env, napi_callback_info info) {
 napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   printf("Constructor called.\n");
 
-  napi_value instance;
+  napi_value esBtree;
   napi_ref ref;
 
   size_t argc = 1;
   napi_value args[1];
-  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, args, &instance, NULL));
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, args, &esBtree, NULL));
 
-  int *native = (int *) malloc(sizeof(int));
-  *native = 100500;
+  BTree_t *bTree = (BTree_t *) malloc(sizeof(BTree_t));
+  bTree->comparator = args[0];
+
+  napi_valuetype comparatorType;
+  NAPI_CALL(env, napi_typeof(env, bTree->comparator, &comparatorType));
+
+  if (comparatorType != napi_function) {
+    NAPI_CALL(env, napi_throw_error(env, "10", "First arg must be comparator function"));
+  }
+
+  // Define comparator as not enumerable & ro property of es btree instance
+  napi_property_descriptor comparatorProp = {
+    "comparator",
+    NULL,
+
+    NULL,
+    NULL,
+    NULL,
+    bTree->comparator,
+
+    napi_default,
+    NULL
+  };
+  NAPI_CALL(env, napi_define_properties(env, esBtree, 1, &comparatorProp));
+
+  GTree *nativeTree = g_tree_new_with_data(nativeComparator, bTree);
 
   // NAPI_CALL(env, napi_wrap(env, instance, native, NULL, NULL, &ref));
 
-  return instance;
+  // BUG: comparator die here
+  return esBtree;
 }
 
 void initGlobals(napi_env env) {
