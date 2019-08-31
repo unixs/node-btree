@@ -42,10 +42,17 @@ function comparator(a, b) {
   }
 }
 
-const tree = new BTree(comparator);
+let tree = new BTree(comparator);
+
+console.log("TREE:" + tree);
+console.log("TREE height: " + tree.height);
+
+
+tree = null;
+
+// global.gc();
 
 console.log(tree);
-
 /*
 tree.set("aa", 10);
 tree.set("bb", 20);

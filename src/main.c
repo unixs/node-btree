@@ -5,11 +5,28 @@
 #include <glib.h>
 
 typedef struct {
-  napi_value comparator
+  napi_value comparator;
+  GTree *nativeTree;
 } BTree_t;
 
-gint nativeComparator(gconstpointer a, gconstpointer b) {
-  return 0;
+gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
+  return -1;
+}
+
+napi_value esBTreeHeight(napi_env env, napi_callback_info cbInfo) {
+  napi_value esValue;
+
+  BTree_t bTree;
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, NULL, &bTree));
+
+  gint nativeHeight = g_tree_height(bTree.nativeTree);
+  napi_create_int64(env, nativeHeight, &esValue);
+
+  return esValue;
+}
+
+void freeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
+  free(finalize_data);
 }
 
 napi_value init(napi_env env, napi_value exports);
@@ -38,8 +55,16 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   napi_value args[1];
   NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, args, &esBtree, NULL));
 
+  // Allocate memory for usre data wich recived in native comparator
   BTree_t *bTree = (BTree_t *) malloc(sizeof(BTree_t));
+
+  // Initialize native BTree with native comparator & additional user data
+  GTree *nativeTree = g_tree_new_with_data(nativeComparator, bTree);
+
+  // Fill user data
+  bTree->nativeTree = nativeTree;
   bTree->comparator = args[0];
+
 
   napi_valuetype comparatorType;
   NAPI_CALL(env, napi_typeof(env, bTree->comparator, &comparatorType));
@@ -49,7 +74,7 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   }
 
   // Define comparator as not enumerable & ro property of es btree instance
-  napi_property_descriptor comparatorProp = {
+  napi_property_descriptor esBTreeProps[] = {{
     "comparator",
     NULL,
 
@@ -60,12 +85,23 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
 
     napi_default,
     NULL
-  };
-  NAPI_CALL(env, napi_define_properties(env, esBtree, 1, &comparatorProp));
+  }, {
+    "height",
+    NULL,
 
-  GTree *nativeTree = g_tree_new_with_data(nativeComparator, bTree);
+    NULL,
+    esBTreeHeight,
+    NULL,
+    NULL,
 
-  // NAPI_CALL(env, napi_wrap(env, instance, native, NULL, NULL, &ref));
+    napi_default,
+    bTree
+  }};
+  size_t propsCnt = sizeof(esBTreeProps) / sizeof(esBTreeProps[0]);
+  NAPI_CALL(env, napi_define_properties(env, esBtree, propsCnt, esBTreeProps));
+
+  // Wrap native data in ES variable for native access again
+  NAPI_CALL(env, napi_wrap(env, esBtree, bTree, freeBTree, NULL, &ref));
 
   // BUG: comparator die here
   return esBtree;

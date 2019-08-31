@@ -10,6 +10,7 @@
       "request": "launch",
       "program": "/usr/bin/node",
       "args": [
+        "--expose-gc",
         "test/main.js"
       ],
       "stopAtEntry": false,
@@ -29,6 +30,9 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
+      "runtimeArgs": [
+        //"--expose-gc"
+      ],
       "program": "${workspaceFolder}/test/main.js"
     }
   ]
