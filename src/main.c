@@ -5,12 +5,40 @@
 #include <glib.h>
 
 typedef struct {
+  napi_env env;
   napi_value comparator;
   GTree *nativeTree;
 } BTree_t;
 
 gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
-  return -1;
+  napi_value strA, strB;
+
+  BTree_t *bTreeWrap = (BTree_t *) bTree;
+  napi_env env = bTreeWrap->env;
+
+  NAPI_CALL(env, napi_coerce_to_string(env, a, &strA));
+  NAPI_CALL(env, napi_coerce_to_string(env, b, &strB));
+
+  char strBufA[100] = "\0";
+  char strBufB[100] = "\0";
+
+  NAPI_CALL(env, napi_get_value_string_utf8(env, strA, strBufA, 100, NULL));
+  NAPI_CALL(env, napi_get_value_string_utf8(env, strB, strBufB, 100, NULL));
+
+  printf("%s\n", strBufA);
+  printf("%s\n", strBufB);
+
+  napi_value esNull;
+  napi_value argv[] = {a, b};
+  napi_value esCompareResult;
+  NAPI_CALL(env, napi_get_null(env, &esNull));
+  NAPI_CALL(env, napi_call_function(env, esNull, bTreeWrap->comparator, 2, argv, &esCompareResult));
+
+  int64_t compareResult;
+
+  NAPI_CALL(env, napi_get_value_int64(env, esCompareResult, &compareResult));
+
+  return compareResult;
 }
 
 napi_value esBTreeHeight(napi_env env, napi_callback_info cbInfo) {
@@ -53,6 +81,91 @@ napi_value esBTreeSize(napi_env env, napi_callback_info cbInfo) {
   return esSize;
 }
 
+napi_value esBTreeSet(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis;
+  BTree_t *bTree;
+  size_t argc = 2;
+  napi_value argv[2];
+
+  // Get es this
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+
+  if (argc < 2) {
+    NAPI_CALL(env, napi_throw_error(env, NULL, "Expected two arguments."));
+  }
+
+  // Extract native BTree pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+
+  // Native call to glib tree
+  g_tree_insert(bTree->nativeTree, argv[0], argv[1]);
+
+  return esThis;
+}
+
+napi_value esBTreeGet(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis;
+  napi_value result;
+  BTree_t *bTree;
+  size_t argc = 1;
+  napi_value argv[argc];
+
+  napi_value strKey, strVal;
+
+  char strBufKey[100] = "\0";
+  char strBufVal[100] = "\0";
+
+
+  // Get es this
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+
+  if (argc < 1) {
+    NAPI_CALL(env, napi_throw_error(env, "10", "Expected one argument."));
+  }
+
+  // Extract native BTree pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+
+  NAPI_CALL(env, napi_coerce_to_string(env, argv[0], &strKey));
+  NAPI_CALL(env, napi_get_value_string_utf8(env, strKey, strBufKey, 100, NULL));
+  printf("key: %s\n", strBufKey);
+
+  // Native call to glib tree
+  napi_value value = g_tree_lookup(bTree->nativeTree, argv[0]);
+
+  napi_valuetype type;
+
+  do {
+    napi_status status = (napi_typeof(env, value, &type));
+    if (status != napi_ok) {
+      const napi_extended_error_info *error_info = NULL;
+      napi_get_last_error_info((env), &error_info);
+      bool is_pending;
+      napi_is_exception_pending((env), &is_pending);
+      if (!is_pending) {
+        const char *message = (error_info->error_message == NULL)
+                                  ? "empty error message"
+                                  : error_info->error_message;
+        napi_throw_error((env), NULL, message);
+        return NULL;
+      }
+    }
+  } while (0);
+
+  NAPI_CALL(env, napi_coerce_to_string(env, value, &strVal));
+  NAPI_CALL(env, napi_get_value_string_utf8(env, strVal, strBufVal, 100, NULL));
+  printf("val: %s\n", strBufVal);
+
+  if (value == NULL) {
+    NAPI_CALL(env, napi_get_null(env, &result));
+  }
+  else {
+    result = value;
+  }
+
+  return result;
+}
+
 void freeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
   // BUG: Incorrect memory free.
   free(finalize_data);
@@ -93,6 +206,7 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   // Fill user data
   bTree->nativeTree = nativeTree;
   bTree->comparator = args[0];
+  bTree->env = env;
 
 
   napi_valuetype comparatorType;
@@ -101,6 +215,10 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   if (comparatorType != napi_function) {
     NAPI_CALL(env, napi_throw_error(env, "10", "First arg must be comparator function"));
   }
+
+  // Create es function
+  //napi_value esBTreeSetCallback;
+  //NAPI_CALL(env, napi_create_function(env, "set", NAPI_AUTO_LENGTH, esBTreeSet, NULL, &esBTreeSetCallback));
 
   // Define comparator as not enumerable & ro property of es btree instance
   napi_property_descriptor esBTreeProps[] = {{
@@ -129,8 +247,8 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     "size",
     NULL,
 
-    NULL,
     esBTreeSize,
+    NULL,
     NULL,
     NULL,
 
@@ -140,8 +258,19 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     "set",
     NULL,
 
+    esBTreeSet,
     NULL,
-    esBTreeHeight,
+    NULL,
+    NULL,
+
+    napi_default,
+    NULL
+  }, {
+    "get",
+    NULL,
+
+    esBTreeGet,
+    NULL,
     NULL,
     NULL,
 

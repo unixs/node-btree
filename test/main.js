@@ -32,6 +32,7 @@ function extend(mixins, save_orig) {
 console.log(BTree);
 
 function comparator(a, b) {
+  console.log(a, b);
   if (a > b) {
     return +1;
   }
@@ -45,16 +46,30 @@ function comparator(a, b) {
 
 let tree = new BTree(comparator);
 
+const i = 50;
+
+tree.set("50", 50);
+//tree.set("20", 20);
+//tree.set("15", 15);
+//tree.set("30", 30);
+//tree.set("10", 10);
+//tree.set("3", 3);
+
+//const one = tree.get("10");
+const two = tree.get("15");
+//const three = tree.get("3");
+
 console.log("TREE:" + tree);
 console.log("TREE height: " + tree.height);
-console.log("TREE size: " + tree.size);
+console.log("TREE size: " + tree.size());
+//console.log(one, two, three);
 
 
-tree = null;
+// tree = null;
 
 // global.gc();
 
-console.log(tree);
+console.log(i, tree);
 /*
 tree.set("aa", 10);
 tree.set("bb", 20);
