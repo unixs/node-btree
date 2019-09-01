@@ -14,15 +14,23 @@ gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
 }
 
 napi_value esBTreeHeight(napi_env env, napi_callback_info cbInfo) {
-  napi_value esValue;
+  napi_value esHeight;
+  napi_value esThis;
+  BTree_t *bTree;
 
-  BTree_t bTree;
-  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, NULL, &bTree));
+  // Get es this
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
 
-  gint nativeHeight = g_tree_height(bTree.nativeTree);
-  napi_create_int64(env, nativeHeight, &esValue);
+  // Extract native BTree pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
 
-  return esValue;
+  // Native call to glib tree
+  gint nativeHeight = g_tree_height(bTree->nativeTree);
+
+  // Convert from C type to es type
+  NAPI_CALL(env, napi_create_int64(env, nativeHeight, &esHeight));
+
+  return esHeight;
 }
 
 void freeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
@@ -96,8 +104,9 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     NULL,
 
     napi_default,
-    bTree
+    NULL
   }};
+
   size_t propsCnt = sizeof(esBTreeProps) / sizeof(esBTreeProps[0]);
   NAPI_CALL(env, napi_define_properties(env, esBtree, propsCnt, esBTreeProps));
 
