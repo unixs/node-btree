@@ -33,6 +33,26 @@ napi_value esBTreeHeight(napi_env env, napi_callback_info cbInfo) {
   return esHeight;
 }
 
+napi_value esBTreeSize(napi_env env, napi_callback_info cbInfo) {
+  napi_value esSize;
+  napi_value esThis;
+  BTree_t *bTree;
+
+  // Get es this
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
+
+  // Extract native BTree pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+
+  // Native call to glib tree
+  gint nativeSize = g_tree_nnodes(bTree->nativeTree);
+
+  // Convert from C type to es type
+  NAPI_CALL(env, napi_create_int64(env, nativeSize, &esSize));
+
+  return esSize;
+}
+
 void freeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
   // BUG: Incorrect memory free.
   free(finalize_data);
@@ -96,6 +116,28 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     NULL
   }, {
     "height",
+    NULL,
+
+    NULL,
+    esBTreeHeight,
+    NULL,
+    NULL,
+
+    napi_default,
+    NULL
+  }, {
+    "size",
+    NULL,
+
+    NULL,
+    esBTreeSize,
+    NULL,
+    NULL,
+
+    napi_default,
+    NULL
+  }, {
+    "set",
     NULL,
 
     NULL,

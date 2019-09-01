@@ -10,7 +10,7 @@ console.log(ext.hello());
 require('assert')
   .equal(ext.hello(), "hello");
 
-
+/*
 function extend(mixins, save_orig) {
   save_orig = save_orig || false;
 
@@ -27,6 +27,7 @@ function extend(mixins, save_orig) {
     });
   });
 }
+*/
 
 console.log(BTree);
 
@@ -46,6 +47,7 @@ let tree = new BTree(comparator);
 
 console.log("TREE:" + tree);
 console.log("TREE height: " + tree.height);
+console.log("TREE size: " + tree.size);
 
 
 tree = null;
