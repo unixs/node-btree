@@ -178,13 +178,18 @@ napi_ref constructor;
 NAPI_MODULE(NODE_GYP_MODULE_NAME, init);
 
 napi_value __hello(napi_env env, napi_callback_info info) {
-  napi_value str;
+  napi_value dbl, str;
 
-  NAPI_CALL(env,
-    napi_create_string_utf8(env, "hello", NAPI_AUTO_LENGTH, &str)
-  );
+  size_t argc = 1;
+  napi_value argv[1], esThis;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &esThis, NULL));
 
-  return str;
+  NAPI_CALL(env, napi_create_string_utf8(env, "bar", NAPI_AUTO_LENGTH, &str));
+  NAPI_CALL(env, napi_create_double(env, 10.5, &dbl));
+
+  NAPI_CALL(env, napi_set_named_property(env, argv[0], "foo", str));
+
+  return dbl;
 }
 
 napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
