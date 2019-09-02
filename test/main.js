@@ -51,6 +51,8 @@ let tree = new BTree(comparator);
 const i = 50;
 
 tree.set("50", 50);
+tree.set(15, 15);
+tree.set("15", 150);
 //tree.set("20", 20);
 //tree.set("15", 15);
 //tree.set("30", 30);
@@ -58,7 +60,8 @@ tree.set("50", 50);
 //tree.set("3", 3);
 
 //const one = tree.get("10");
-const two = tree.get("15");
+const two = tree.get("150");
+console.log(two);
 //const three = tree.get("3");
 
 console.log("TREE:" + tree);

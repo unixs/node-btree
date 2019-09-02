@@ -10,6 +10,10 @@ typedef struct {
   GTree *nativeTree;
 } BTree_t;
 
+void freeNativeTreeNode(gpointer data) {
+
+}
+
 gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
   int64_t compareResult = 0;
 
@@ -121,7 +125,10 @@ napi_value esBTreeSet(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_set_named_property(env, box, "value", value));
 
   napi_ref boxRef;
-  NAPI_CALL(env, napi_create_reference(env, box, 1, &boxRef));
+  NAPI_CALL(env, napi_wrap(env, box, bTree, NULL, NULL, &boxRef));
+
+  size_t refCnt;
+  NAPI_CALL(env, napi_reference_ref(env, boxRef, &refCnt));
 
   // Native call to glib tree
   bTree->env = env;
@@ -158,8 +165,13 @@ napi_value esBTreeGet(napi_env env, napi_callback_info cbInfo) {
   // Native call to glib tree
   napi_ref lookupResult = g_tree_lookup(bTree->nativeTree, lookupRef);
 
-  NAPI_CALL(env, napi_get_null(env, &result));
-
+  if (lookupResult == NULL) {
+    NAPI_CALL(env, napi_get_undefined(env, &result));
+  }
+  else {
+    NAPI_CALL(env, napi_get_reference_value(env, lookupResult, &result));
+    NAPI_CALL(env, napi_get_named_property(env, result, "value", &result));
+  }
   /*
 
   napi_valuetype type;
@@ -192,6 +204,7 @@ napi_value esBTreeGet(napi_env env, napi_callback_info cbInfo) {
     result = value;
   }
 */
+
   return result;
 }
 
@@ -235,8 +248,7 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   BTree_t *bTree = (BTree_t *) malloc(sizeof(BTree_t));
 
   // Initialize native BTree with native comparator & additional user data
-  GTree *nativeTree = g_tree_new_with_data(nativeComparator, bTree);
-
+  GTree *nativeTree = g_tree_new_full(nativeComparator, bTree, freeNativeTreeNode, NULL);
 
   napi_valuetype comparatorType;
   NAPI_CALL(env, napi_typeof(env, argv[0], &comparatorType));
