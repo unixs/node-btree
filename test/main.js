@@ -2,12 +2,12 @@ const binary = require('node-pre-gyp');
 const path = require('path');
 const binding_path = binary.find(path.resolve(path.join(__dirname, '../package.json')));
 
-const ext = require("../lib/binding/Debug/node-v72-linux-x64/node_btree.node");
+const {BTree, hello} = require("../lib/binding/Debug/node-v72-linux-x64/node_btree.node");
 
 console.log("node-mixin test.");
 
 const obj = {};
-console.log(ext.hello(obj));
+console.log(hello(obj));
 
 console.log(obj);
 

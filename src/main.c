@@ -20,27 +20,6 @@ gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
   BTree_t *bTreeWrap = (BTree_t *) bTree;
   napi_env env = bTreeWrap->env;
 
-  /*
-  napi_value strA, strB;
-
-
-  NAPI_CALL(env, napi_coerce_to_string(env, a, &strA));
-  NAPI_CALL(env, napi_coerce_to_string(env, b, &strB));
-
-  char strBufA[100] = "\0";
-  char strBufB[100] = "\0";
-
-  NAPI_CALL(env, napi_get_value_string_utf8(env, strA, strBufA, 100, NULL));
-  NAPI_CALL(env, napi_get_value_string_utf8(env, strB, strBufB, 100, NULL));
-
-  printf("%s\n", strBufA);
-  printf("%s\n", strBufB);
-
-  napi_value esNull;
-  napi_value argv[] = {a, b};
-  napi_value esCompareResult;
-  NAPI_CALL(env, napi_get_null(env, &esNull));
-*/
   napi_ref refA = (napi_ref) a;
   napi_ref refB = (napi_ref) b;
   napi_value boxA, boxB, keyA, keyB, esNull, esResult, comparator;
@@ -125,13 +104,15 @@ napi_value esBTreeSet(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_set_named_property(env, box, "value", value));
 
   napi_ref boxRef;
-  NAPI_CALL(env, napi_wrap(env, box, bTree, NULL, NULL, &boxRef));
+  // NAPI_CALL(env, napi_wrap(env, box, bTree, NULL, NULL, &boxRef));
 
-  size_t refCnt;
-  NAPI_CALL(env, napi_reference_ref(env, boxRef, &refCnt));
+  // size_t refCnt;
+  // NAPI_CALL(env, napi_reference_ref(env, boxRef, NULL));
+  NAPI_CALL(env, napi_create_reference(env, box, 1, &boxRef));
 
   // Native call to glib tree
   bTree->env = env;
+  // BUG: Memory leak. Old nodes not freed properly
   g_tree_insert(bTree->nativeTree, boxRef, boxRef);
 
   return esThis;
@@ -172,38 +153,6 @@ napi_value esBTreeGet(napi_env env, napi_callback_info cbInfo) {
     NAPI_CALL(env, napi_get_reference_value(env, lookupResult, &result));
     NAPI_CALL(env, napi_get_named_property(env, result, "value", &result));
   }
-  /*
-
-  napi_valuetype type;
-
-  do {
-    napi_status status = (napi_typeof(env, lookupResult, &type));
-    if (status != napi_ok) {
-      const napi_extended_error_info *error_info = NULL;
-      napi_get_last_error_info((env), &error_info);
-      bool is_pending;
-      napi_is_exception_pending((env), &is_pending);
-      if (!is_pending) {
-        const char *message = (error_info->error_message == NULL)
-                                  ? "empty error message"
-                                  : error_info->error_message;
-        napi_throw_error((env), NULL, message);
-        return NULL;
-      }
-    }
-  } while (0);
-
-  NAPI_CALL(env, napi_coerce_to_string(env, value, &strVal));
-  NAPI_CALL(env, napi_get_value_string_utf8(env, strVal, strBufVal, 100, NULL));
-  printf("val: %s\n", strBufVal);
-
-  if (value == NULL) {
-    NAPI_CALL(env, napi_get_null(env, &result));
-  }
-  else {
-    result = value;
-  }
-*/
 
   return result;
 }
@@ -330,55 +279,16 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   // Wrap native data in ES variable for native access again
   NAPI_CALL(env, napi_wrap(env, esBtree, bTree, freeBTree, NULL, &ref));
 
-  // BUG: comparator die here
   return esBtree;
 }
 
-void initGlobals(napi_env env) {
-  napi_value globl;
-  NAPI_CALL(env, napi_get_global(env, &globl));
-
-  napi_value fake;
-  NAPI_CALL(env, napi_create_int64(env, 100500, &fake));
-
-  napi_value BTreeClass;
-
-  NAPI_CALL(env, napi_define_class(env, "BTree", NAPI_AUTO_LENGTH, BTreeConstructor, NULL, 0, NULL, &BTreeClass));
-
-  NAPI_CALL(env, napi_create_reference(env, BTreeClass, 1, &constructor));
-
-  napi_property_descriptor desc[] = {
-    {
-      "int64_t",
-      NULL,
-
-      NULL,
-      NULL,
-      NULL,
-      fake,
-
-      napi_default,
-      NULL
-    },
-    {
-      "BTree",
-      NULL,
-
-      NULL,
-      NULL,
-      NULL,
-      BTreeClass,
-
-      napi_default,
-      NULL
-    }
-  };
-
-  NAPI_CALL(env, napi_define_properties(env, globl, 2, &desc));
-}
-
 napi_value init(napi_env env, napi_value exports) {
-  napi_property_descriptor desc = {
+  napi_value esBTreeClass;
+
+  NAPI_CALL(env, napi_define_class(env, "BTree", NAPI_AUTO_LENGTH, BTreeConstructor, NULL, 0, NULL, &esBTreeClass));
+  NAPI_CALL(env, napi_create_reference(env, esBTreeClass, 1, &constructor));
+
+  napi_property_descriptor props[] = {{
     "hello",
     NULL,
     __hello,
@@ -387,11 +297,19 @@ napi_value init(napi_env env, napi_value exports) {
     NULL,
     napi_default,
     NULL
-  };
+  }, {
+    "BTree",
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    esBTreeClass,
+    napi_default,
+    NULL
+  }};
 
-  NAPI_CALL(env, napi_define_properties(env, exports, 1, &desc));
-
-  initGlobals(env);
+  size_t propsCnt = sizeof(props) / sizeof(props[0]);
+  NAPI_CALL(env, napi_define_properties(env, exports, propsCnt, props));
 
   return exports;
 }

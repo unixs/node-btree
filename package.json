@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
-    "test": "node test/main.js"
+    "test": "ts-node jest"
   },
   "binary": {
     "module_name": "node_btree",
@@ -18,16 +18,25 @@
     "type": "git",
     "url": "git+https://github.com/unixs/node-btree.git"
   },
-  "author": "Alexander Feodorov <aleksandr_fedorov2@epam.com>",
+  "author": "Alexander Feodorov <webmaster@unixcomp.org>",
   "license": "LGPL-3.0",
   "bugs": {
     "url": "https://github.com/unixs/node-btree/issues"
   },
   "homepage": "https://github.com/unixs/node-btree#readme",
+  "types": "./typings/btree.d.ts",
   "dependencies": {
     "node-pre-gyp": "~0.13.0"
   },
   "devDependencies": {
-    "aws-sdk": "~2.518.0"
+    "@types/jest": "~24.0.18",
+    "@types/node": "~12.7.3",
+    "aws-sdk": "~2.518.0",
+    "eslint": "~6.3.0",
+    "jest": "~24.9.0",
+    "ts-jest": "~24.0.2",
+    "ts-node": "~8.3.0",
+    "tslint": "~5.19.0",
+    "typescript": "~3.6.2"
   }
 }
