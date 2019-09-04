@@ -184,8 +184,6 @@ napi_value __hello(napi_env env, napi_callback_info info) {
 }
 
 napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
-  printf("Constructor called.\n");
-
   napi_value esBtree;
   napi_ref ref;
 

@@ -1,0 +1,11 @@
+dist: bionic
+language: node_js
+
+node_js:
+  - 12
+
+install:
+  - apt-get install build-essenial
+  - npm install --fallback-to-build
+
+script: npm test

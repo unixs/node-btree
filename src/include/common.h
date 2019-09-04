@@ -2,7 +2,6 @@
 #define NAPI_CALL(env, call)                                                   \
   do {                                                                         \
     napi_status status = (call);                                               \
-    printf("status: %d\n", status);                                              \
     if (status != napi_ok) {                                                   \
       const napi_extended_error_info *error_info = NULL;                       \
       napi_get_last_error_info((env), &error_info);                            \

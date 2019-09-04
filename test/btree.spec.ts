@@ -1,5 +1,5 @@
 import { BTree } from "../lib/binding/Debug/node-v72-linux-x64/node_btree.node";
-
+import { toUnicode } from "punycode";
 
 function comparator(a, b) {
   if (a > b) {
@@ -13,24 +13,44 @@ function comparator(a, b) {
   }
 }
 
-let tree = new BTree(comparator);
+describe("Sample", () => {
+  test("Create BTree instance", () => {
+    const btree = new BTree(comparator);
 
-const i = 50;
+    expect(btree).toBeInstanceOf(BTree);
+  });
 
-tree.set("50", 50);
-tree.set("30", 30);
-tree.set("15", 150);
-//tree.set("20", 20);
-//tree.set("15", 15);
-//tree.set("30", 30);
-//tree.set("10", 10);
-//tree.set("3", 3);
+  test.todo('Check comparator');
 
-//const one = tree.get("10");
-const two = tree.get("150");
-console.log(two);
-//const three = tree.get("3");
+  test("Check size method", () => {
+    const btree = new BTree(comparator);
 
-console.log("TREE:" + tree);
-console.log("TREE height: " + tree.height);
-console.log("TREE size: " + tree.size());
+    btree.set("50", 50);
+    btree.set("30", 30);
+    btree.set("15", 150);
+
+    expect(btree.size()).toBe(3);
+  });
+
+  test("Check heigth field", () => {
+    const btree = new BTree(comparator);
+
+    btree.set("50", 50);
+    btree.set("30", 30);
+    btree.set("15", 150);
+
+    expect(btree.height).toBe(2);
+  });
+
+  test("Check get method", () => {
+    const btree = new BTree(comparator);
+
+    btree.set("50", 50);
+    btree.set("30", 30);
+    btree.set("15", 150);
+
+
+    expect(btree.get(15)).toBe(150);
+  });
+});
+
