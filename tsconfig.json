@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "es2019",
-    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -11,11 +10,21 @@
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-    "noUnusedLocals": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
     "downlevelIteration": true,
     "noEmit": true,
+    "typeRoots": [
+      "typings",
+      "test/typings",
+      "node_modules/@types"
+    ]
   },
-  "exclude": ["./node_modules"]
+  "exclude": [
+    "./node_modules",
+    "./src",
+    "./lib",
+    "./build"
+  ],
 }

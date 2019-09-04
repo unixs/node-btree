@@ -1,4 +1,4 @@
-declare module "*/node_btree.node" {
+declare module "*/node_btree" {
 
   interface BTreeComarator<K> {
     (a: K, b: K): number;

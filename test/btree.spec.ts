@@ -1,7 +1,6 @@
-import { BTree } from "../lib/binding/Debug/node-v72-linux-x64/node_btree.node";
-import { toUnicode } from "punycode";
+import { BTree } from "../lib/binding/Debug/node-v72-linux-x64/node_btree";
 
-function comparator(a, b) {
+function comparator(a: any, b: any): number {
   if (a > b) {
     return 1;
   }
