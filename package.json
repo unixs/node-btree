@@ -4,7 +4,7 @@
   "description": "Node.js native N-API mixin implementation",
   "main": "main.js",
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
+    "install": "node-pre-gyp install --fallback-to-build --debug",
     "test": "jest"
   },
   "binary": {
