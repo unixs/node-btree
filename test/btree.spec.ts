@@ -20,7 +20,7 @@ describe("Sample", () => {
     expect(btree).toBeInstanceOf(BTree);
   });
 
-  test.todo('Check comparator');
+  test.todo('Check');
 
   test("Check size method", () => {
     const btree = new BTree(comparator);

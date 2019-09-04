@@ -112,7 +112,7 @@ module.exports = {
   // restoreMocks: false,
 
   // The root directory that Jest should scan for tests and modules within
-  rootDir: '.',
+  // rootDir: '.',
 
   // A list of paths to directories that Jest should use to search for files in
   // roots: [
@@ -143,7 +143,7 @@ module.exports = {
   // The glob patterns Jest uses to detect test files
   testMatch: [
     // "**/__tests__/**/*.[jt]s?(x)",
-    "**/?(*.)+(spec|test).[tj]s"
+    "<rootDir>/test/**/?(*.)+(spec|test).[tj]s"
   ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
@@ -153,7 +153,8 @@ module.exports = {
     "/build/",
     "/tmp/",
     "/typings/",
-    "/.vscode/"
+    "/.vscode/",
+    "/src/"
   ],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files

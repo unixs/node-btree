@@ -3,8 +3,13 @@ language: node_js
 
 node_js:
   - 12
+  - 10
+
+cache:
+  directories:
+  - "$HOME/.npm"
 
 install:
-  - npm install --fallback-to-build
+  - npm ci --fallback-to-build
 
 script: npm test
