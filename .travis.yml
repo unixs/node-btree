@@ -9,6 +9,6 @@ cache:
   - "$HOME/.npm"
 
 install:
-  - npm ci --fallback-to-build --debug
+  - npm ci --update-binary --fallback-to-build --debug
 
 script: npm test

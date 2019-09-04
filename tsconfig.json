@@ -14,12 +14,7 @@
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "downlevelIteration": true,
-    "noEmit": true,
-    "typeRoots": [
-      "typings",
-      "test/typings",
-      "node_modules/@types"
-    ]
+    "noEmit": true
   },
   "exclude": [
     "./node_modules",
