@@ -5,8 +5,8 @@ declare module "*/node_btree.node" {
   }
 
   class BTree<K, V> {
-    height: number;
-    readonly comparator: BTreeComarator<K>
+    public height: number;
+    readonly public comparator: BTreeComarator<K>
 
     constructor(comparator: BTreeComarator<K>);
 
