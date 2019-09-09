@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <setjmp.h>
 #include <node_api.h>
 #include "include/common.h"
 #include <glib.h>
@@ -183,6 +184,12 @@ napi_value __hello(napi_env env, napi_callback_info info) {
   return dbl;
 }
 
+gboolean nativeBTreeTraverse(gpointer key, gpointer value, gpointer data) {
+  int val;
+  jmp_buf env_buffer;
+  val = setjmp(env_buffer);
+}
+
 napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, esIteratorResult;
 
@@ -190,6 +197,8 @@ napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
 
   NAPI_CALL(env, napi_create_object(env, &esIteratorResult));
+
+  g_tree_foreach(bTree, nativeBTreeTraverse, NULL);
 
   napi_value value;
   NAPI_CALL(env, napi_create_string_utf8(env, "it result", NAPI_AUTO_LENGTH, &value));
