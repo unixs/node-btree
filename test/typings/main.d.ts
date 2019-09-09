@@ -13,6 +13,11 @@ declare module "*/node_btree" {
     set(key: K, value: V): BTree<K, V>;
     get(key: K): V | undefined;
     size(): number;
+
+    [Symbol.iterator](): IterableIterator<[K, V]>;
+    entries(): IterableIterator<[K, V]>;
+    keys(): IterableIterator<K>;
+    values(): IterableIterator<V>;
   }
 
   export {

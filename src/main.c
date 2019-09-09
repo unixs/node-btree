@@ -183,6 +183,42 @@ napi_value __hello(napi_env env, napi_callback_info info) {
   return dbl;
 }
 
+napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis, esIteratorResult;
+
+  // Get es this for current btree
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
+
+  NAPI_CALL(env, napi_create_object(env, &esIteratorResult));
+
+  napi_value value;
+  NAPI_CALL(env, napi_create_string_utf8(env, "it result", NAPI_AUTO_LENGTH, &value));
+  NAPI_CALL(env, napi_set_named_property(env, esIteratorResult, "value", value));
+
+  napi_value isDone;
+  NAPI_CALL(env, napi_get_boolean(env, false, &isDone));
+  NAPI_CALL(env, napi_set_named_property(env, esIteratorResult, "done", isDone));
+
+  return esIteratorResult;
+}
+
+napi_value esBTreeGenerator(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis, esIterator;
+  BTree_t *bTree;
+
+  // Get es this for current btree
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
+
+  // Create es Iterator
+  NAPI_CALL(env, napi_create_object(env, &esIterator));
+
+  napi_value nextFunction;
+  NAPI_CALL(env, napi_create_function(env, "next", NAPI_AUTO_LENGTH, esBTreeIteratorNext, NULL, &nextFunction));
+  NAPI_CALL(env, napi_set_named_property(env, esIterator, "next", nextFunction));
+
+  return esIterator;
+}
+
 napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   napi_value esBtree;
   napi_ref ref;
@@ -212,6 +248,12 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   // Create es function
   //napi_value esBTreeSetCallback;
   //NAPI_CALL(env, napi_create_function(env, "set", NAPI_AUTO_LENGTH, esBTreeSet, NULL, &esBTreeSetCallback));
+
+  napi_value global, Symbol, symbolIterator;
+  NAPI_CALL(env, napi_get_global(env, &global));
+  NAPI_CALL(env, napi_get_named_property(env, global, "Symbol", &Symbol));
+  NAPI_CALL(env, napi_get_named_property(env, Symbol, "iterator", &symbolIterator));
+
 
   // Define comparator as not enumerable & ro property of es btree instance
   napi_property_descriptor esBTreeProps[] = {{
@@ -263,6 +305,18 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     NULL,
 
     esBTreeGet,
+    NULL,
+    NULL,
+    NULL,
+
+    napi_default,
+    NULL
+  }, {
+    NULL,
+    // es [Symbol.iterator]()
+    symbolIterator,
+
+    esBTreeGenerator,
     NULL,
     NULL,
     NULL,

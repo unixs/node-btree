@@ -11,7 +11,7 @@
       "program": "/usr/bin/node",
       "args": [
         "--expose-gc",
-        "test/main.js"
+        "test/native.js"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -33,7 +33,7 @@
       "runtimeArgs": [
         //"--expose-gc"
       ],
-      "program": "${workspaceFolder}/test/main.js"
+      "program": "${workspaceFolder}/test/native.js"
     }
   ]
 }
