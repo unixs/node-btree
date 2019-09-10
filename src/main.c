@@ -11,8 +11,13 @@ typedef struct {
   GTree *nativeTree;
 } BTree_t;
 
-void freeNativeTreeNode(gpointer data) {
+typedef struct {
+  BTree_t *bTree;
+  napi_value esCb;
+} BTreeTraverseData_t;
 
+void freeNativeTreeNode(gpointer data) {
+  printf("Free native node.\n");
 }
 
 gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
@@ -79,6 +84,37 @@ napi_value esBTreeSize(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_create_int64(env, nativeSize, &esSize));
 
   return esSize;
+}
+
+napi_value esBTreeDelete(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis, result;
+  napi_ref boxRef;
+  BTree_t *bTree;
+
+  size_t argc = 1;
+  napi_value argv[1];
+
+  napi_value box;
+
+  // Get es this
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+
+  if (argc < 1) {
+    NAPI_CALL(env, napi_throw_error(env, NULL, "Too few arguments."));
+  }
+
+  // Extract native BTree pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+
+  NAPI_CALL(env, napi_create_object(env, &box));
+  NAPI_CALL(env, napi_set_named_property(env, box, "key", argv[0]));
+  NAPI_CALL(env, napi_create_reference(env, box, 0, &boxRef));
+
+  gboolean found = g_tree_remove(bTree->nativeTree, boxRef);
+
+  NAPI_CALL(env, napi_get_boolean(env, found, &result));
+
+  return result;
 }
 
 napi_value esBTreeSet(napi_env env, napi_callback_info cbInfo) {
@@ -198,7 +234,7 @@ napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
 
   NAPI_CALL(env, napi_create_object(env, &esIteratorResult));
 
-  g_tree_foreach(bTree, nativeBTreeTraverse, NULL);
+  // g_tree_foreach(bTree, nativeBTreeTraverse, NULL);
 
   napi_value value;
   NAPI_CALL(env, napi_create_string_utf8(env, "it result", NAPI_AUTO_LENGTH, &value));
@@ -226,6 +262,54 @@ napi_value esBTreeGenerator(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_set_named_property(env, esIterator, "next", nextFunction));
 
   return esIterator;
+}
+
+gboolean BTreeNativeTraverse(gpointer key, gpointer val, gpointer data) {
+  napi_ref objectRef = (napi_ref) val;
+  napi_value esObject, esKey, esValue, esNull;
+  BTreeTraverseData_t *tData = (BTreeTraverseData_t *) data;
+  napi_env env = tData->bTree->env;
+
+  NAPI_CALL(env, napi_get_reference_value(env, objectRef, &esObject));
+  NAPI_CALL(env, napi_get_named_property(env, esObject, "key", &esKey));
+  NAPI_CALL(env, napi_get_named_property(env, esObject, "value", &esValue));
+
+  napi_value argv[] = { esKey, esValue };
+  NAPI_CALL(env, napi_get_null(env, &esNull));
+
+  NAPI_CALL(env, napi_call_function(env, esNull, tData->esCb, 2, argv, NULL));
+
+  return FALSE;
+}
+
+napi_value esBTreeForeach(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis, undefined;
+  BTree_t *bTree;
+  size_t argc = 1;
+  napi_value argv[1], esCb;
+
+
+  // Get es this for current btree
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+
+  if (argc < 1) {
+    NAPI_CALL(env, napi_throw_error(env, NULL, "Too few arguments."));
+  }
+
+  esCb = argv[0];
+  // Extract native BTree pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+
+  BTreeTraverseData_t traverseData = {
+    bTree,
+    esCb
+  };
+
+  g_tree_foreach(bTree->nativeTree, BTreeNativeTraverse, &traverseData);
+
+  NAPI_CALL(env, napi_get_undefined(env, &undefined));
+
+  return undefined;
 }
 
 napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
@@ -321,11 +405,33 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     napi_default,
     NULL
   }, {
+    "delete",
+    NULL,
+
+    esBTreeDelete,
+    NULL,
+    NULL,
+    NULL,
+
+    napi_default,
+    NULL
+  }, {
     NULL,
     // es [Symbol.iterator]()
     symbolIterator,
 
     esBTreeGenerator,
+    NULL,
+    NULL,
+    NULL,
+
+    napi_default,
+    NULL
+  }, {
+    "forEach",
+    NULL,
+
+    esBTreeForeach,
     NULL,
     NULL,
     NULL,

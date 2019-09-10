@@ -33,7 +33,7 @@
       "runtimeArgs": [
         //"--expose-gc"
       ],
-      "program": "${workspaceFolder}/test/native.js"
+      "program": "${workspaceFolder}/test/native.js",
     }
   ]
 }
