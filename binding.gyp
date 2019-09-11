@@ -5,6 +5,9 @@
     {
       "target_name": "<(module_name)",
       "sources": [ "src/main.c" ],
+      "cflags": [
+        "-fno-omit-frame-pointer"
+      ],
       "include_dirs": [
         '<!@(pkg-config --cflags glib-2.0 | sed s/-I//g)'
       ],

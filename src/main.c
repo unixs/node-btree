@@ -250,11 +250,13 @@ gboolean nativeBTreeTraverse(gpointer key, gpointer value, gpointer data) {
 
   traverseContext->value = esValue;
 
-  gboolean jmpInFlag = setjmp(traverseContext->jmpBufIn);
+  int jmpInFlag = setjmp(traverseContext->jmpBufIn);
 
   if (jmpInFlag == NULL) {
-    longjmp(traverseContext->jmpBufOut, true);
+    longjmp(traverseContext->jmpBufOut, 1);
   }
+
+  return FALSE;
 }
 
 napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
@@ -267,7 +269,7 @@ napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
   // Extract native pointer
   NAPI_CALL(env, napi_unwrap(env, esThis, &traverseContext));
 
-  gboolean jmpOutFlag;
+  int jmpOutFlag;
   if (traverseContext->state != TRAVERSE_END) {
     jmpOutFlag = setjmp(traverseContext->jmpBufOut);
   }
@@ -281,7 +283,7 @@ napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
         break;
 
       case TRAVERSE_LOOP:
-        longjmp(traverseContext->jmpBufIn, true);
+        longjmp(traverseContext->jmpBufIn, 1);
         break;
 
       case TRAVERSE_END:
@@ -303,6 +305,7 @@ napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
 
   NAPI_CALL(env, napi_set_named_property(env, esIteratorResult, "value", traverseContext->value));
   NAPI_CALL(env, napi_set_named_property(env, esIteratorResult, "done", isDone));
+
 
   return esIteratorResult;
 }
