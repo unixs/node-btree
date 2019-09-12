@@ -4,23 +4,25 @@ declare module "*/node_btree" {
     (a: K, b: K): number;
   }
 
-  class BTree<K, V> {
-    public height: number;
-    readonly public comparator: BTreeComarator<K>
+  class BTree<K, V> extends Map<K, V> {
+    public readonly height: number;
+    public readonly size: number;
+    public readonly comparator: BTreeComarator<K>
 
-    constructor(comparator: BTreeComarator<K>);
+    constructor(comparator: BTreeComarator<K>, entries?: ReadonlyArray<readonly [K, V]> | null);
 
-    set(key: K, value: V): BTree<K, V>;
+    set(key: K, value: V): this;
     get(key: K): V | undefined;
     delete(key: K): boolean;
-    size(): number;
 
     [Symbol.iterator](): IterableIterator<[K, V]>;
-    forEach(cb: (key: K, val: V) => void): void;
 
+    forEach(callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void;
     entries(): IterableIterator<[K, V]>;
     keys(): IterableIterator<K>;
     values(): IterableIterator<V>;
+    clear(): void;
+    has(key: K): boolean;
   }
 
   export {
