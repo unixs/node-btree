@@ -37,17 +37,12 @@ btree.set("15", 150);
 btree.set("30", 30);
 btree.set("18", 81);
 btree.set("100", 0);
-/*
+
 btree.forEach((k, v) => {
   console.log(k, v);
 });
-*/
-//for (const val of btree) {
-//  console.log(val);
-//}
 
-btree.clear();
+for (const val of btree) {
+  console.log(val);
+}
 
-btree.set(1, 2);
-
-btree.clear();

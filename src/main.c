@@ -5,6 +5,56 @@
 #include "include/common.h"
 #include <glib.h>
 
+typedef struct _GTreeNode GTreeNode;
+
+struct _GTreeNode {
+  gpointer key;     /* key for this node */
+  gpointer value;   /* value stored at this node */
+  GTreeNode *left;  /* left subtree */
+  GTreeNode *right; /* right subtree */
+  gint8 balance;    /* height (right) - height (left) */
+  guint8 left_child;
+  guint8 right_child;
+};
+
+struct _GTree {
+  GTreeNode *root;
+  GCompareDataFunc key_compare;
+  GDestroyNotify key_destroy_func;
+  GDestroyNotify value_destroy_func;
+  gpointer key_compare_data;
+  guint nnodes;
+  gint ref_count;
+};
+
+static inline GTreeNode* local_g_tree_first_node(GTree *tree) {
+  GTreeNode *tmp;
+
+  if (!tree->root)
+    return NULL;
+
+  tmp = tree->root;
+
+  while (tmp->left_child)
+    tmp = tmp->left;
+
+  return tmp;
+}
+
+static inline GTreeNode* local_g_tree_node_next(GTreeNode *node) {
+  GTreeNode *tmp;
+
+  tmp = node->right;
+
+  if (node->right_child)
+    while (tmp->left_child)
+      tmp = tmp->left;
+
+  return tmp;
+}
+
+// -------------------------->
+
 enum state {
   TRAVERSE_INIT,
   TRAVERSE_LOOP,
@@ -25,8 +75,7 @@ typedef struct {
 typedef struct {
   BTree_t *bTree;
   enum state state;
-  jmp_buf jmpBufIn;
-  jmp_buf jmpBufOut;
+  GTreeNode *currentNode;
   napi_value value;
 } BTreeTraverseContext_t;
 
@@ -305,26 +354,6 @@ napi_value __hello(napi_env env, napi_callback_info info) {
   return dbl;
 }
 
-gboolean nativeBTreeTraverse(gpointer key, gpointer value, gpointer data) {
-  BTreeTraverseContext_t *traverseContext = (BTreeTraverseContext_t *) data;
-
-  napi_env env = traverseContext->bTree->env;
-  napi_ref esValueRef = (napi_ref) key;
-  napi_value esValue;
-
-  NAPI_CALL(env, napi_get_reference_value(env, esValueRef, &esValue));
-
-  traverseContext->value = esValue;
-
-  int jmpInFlag = setjmp(traverseContext->jmpBufIn);
-
-  if (jmpInFlag == NULL) {
-    longjmp(traverseContext->jmpBufOut, 1);
-  }
-
-  return FALSE;
-}
-
 napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis;
   BTreeTraverseContext_t *traverseContext;
@@ -335,27 +364,32 @@ napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
   // Extract native pointer
   NAPI_CALL(env, napi_unwrap(env, esThis, &traverseContext));
 
-  int jmpOutFlag;
-  if (traverseContext->state != TRAVERSE_END) {
-    jmpOutFlag = setjmp(traverseContext->jmpBufOut);
-  }
+  napi_ref esValueRef;
+  napi_value box;
+  GTreeNode *node;
+  switch (traverseContext->state) {
+    case TRAVERSE_INIT:
+      traverseContext->state = TRAVERSE_LOOP;
+      node = local_g_tree_first_node(traverseContext->bTree->nativeTree);
+      traverseContext->currentNode = node;
 
-  if (jmpOutFlag == NULL) {
-    switch (traverseContext->state) {
-      case TRAVERSE_INIT:
-        traverseContext->state = TRAVERSE_LOOP;
-        g_tree_foreach(traverseContext->bTree->nativeTree, nativeBTreeTraverse, traverseContext);
-        traverseContext->state = TRAVERSE_END;
-        break;
+      esValueRef = (napi_ref) node->value;
+      NAPI_CALL(env, napi_get_reference_value(env, esValueRef, &box)); // es: { key, value }
+      NAPI_CALL(env, napi_get_named_property(env, box, "value", &traverseContext->value));
+      break;
 
-      case TRAVERSE_LOOP:
-        longjmp(traverseContext->jmpBufIn, 1);
-        break;
+    case TRAVERSE_LOOP:
+      node = local_g_tree_node_next(traverseContext->currentNode);
+      traverseContext->currentNode = node;
 
-      case TRAVERSE_END:
-        // noop
-        break;
-    }
+      esValueRef = (napi_ref) node->value;
+      NAPI_CALL(env, napi_get_reference_value(env, esValueRef, &box)); // es: { key, value }
+      NAPI_CALL(env, napi_get_named_property(env, box, "value", &traverseContext->value));
+      break;
+
+    case TRAVERSE_END:
+      // noop
+      break;
   }
 
   napi_value esIteratorResult, isDone;

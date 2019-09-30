@@ -1,0 +1,28 @@
+{
+// Документацию по формату tasks.json см.
+  // по адресу https://go.microsoft.com/fwlink/?LinkId=733558
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "Build extension",
+      "command": "npm",
+      "args": [
+        "install",
+        "--build-from-source",
+        "--debug"
+      ],
+      "problemMatcher": {
+        "base": "$gcc",
+        "fileLocation": ["relative", "${workspaceRoot}"]
+      },
+      "group": "build"
+    },
+    {
+      "type": "npm",
+      "label": "Jest tests",
+      "script": "test",
+      "group": "test"
+    }
+  ]
+}
