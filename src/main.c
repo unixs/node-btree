@@ -199,6 +199,43 @@ napi_value esClear(napi_env env, napi_callback_info cbInfo) {
   return result;
 }
 
+napi_value esHas(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis;
+  napi_ref boxRef;
+  BTree_t *bTree;
+  size_t argc = 1;
+  napi_value argv[1];
+
+  napi_value box;
+
+  // Get es this
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+
+  if (argc < 1) {
+    NAPI_CALL(env, napi_throw_error(env, NULL, "Too few arguments."));
+  }
+
+  // Extract native BTree pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+
+  NAPI_CALL(env, napi_create_object(env, &box));
+  NAPI_CALL(env, napi_set_named_property(env, box, "key", argv[0]));
+  NAPI_CALL(env, napi_create_reference(env, box, 0, &boxRef));
+
+  gpointer found = g_tree_lookup(bTree->nativeTree, boxRef);
+
+  napi_value result;
+
+  if (found == NULL) {
+    NAPI_CALL(env, napi_get_boolean(env, false, &result));
+  }
+  else {
+    NAPI_CALL(env, napi_get_boolean(env, true, &result));
+  }
+
+  return result;
+}
+
 napi_value esBTreeGet(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis;
   napi_value result;
@@ -545,6 +582,17 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     NULL,
 
     esClear,
+    NULL,
+    NULL,
+    NULL,
+
+    napi_default,
+    NULL
+  }, {
+    "has",
+    NULL,
+
+    esHas,
     NULL,
     NULL,
     NULL,

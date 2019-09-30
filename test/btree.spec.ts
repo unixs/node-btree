@@ -132,6 +132,19 @@ describe("Base functionality", () => {
 
     expect(btree.size).toBe(1);
   });
+
+  test('Should be chackable by has method', () => {
+    const btree = new BTree<string, number>(comparator);
+
+    btree.set("50", 51);
+    btree.set("15", 150);
+    btree.set("30", 30);
+
+    expect(btree.size).toBe(3);
+
+    expect(btree.has("50")).toBe(true);
+    expect(btree.has("100500")).toBe(false);
+  });
 });
 
 describe('Traverse functionality', () => {
