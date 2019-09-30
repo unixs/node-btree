@@ -30,6 +30,14 @@ typedef struct {
   napi_value value;
 } BTreeTraverseContext_t;
 
+gboolean _removeTreeNode(gpointer key, gpointer val, gpointer data) {
+  napi_ref keyRef = (napi_ref) key;
+  BTreeTraverseData_t *tData = (BTreeTraverseData_t *) data;
+
+  g_tree_remove(tData->bTree->nativeTree, keyRef);
+
+  return FALSE;
+}
 
 void freeNativeTreeNode(gpointer data) {
   printf("Free native node.\n");
@@ -168,6 +176,27 @@ napi_value esBTreeSet(napi_env env, napi_callback_info cbInfo) {
   g_tree_insert(bTree->nativeTree, boxRef, boxRef);
 
   return esThis;
+}
+
+napi_value esClear(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis;
+  BTree_t *bTree;
+
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
+
+  // Extract native BTree pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+
+  BTreeTraverseData_t traverseData = {
+    bTree
+  };
+
+  g_tree_foreach(bTree->nativeTree, _removeTreeNode, &traverseData);
+
+  napi_value result;
+  NAPI_CALL(env, napi_get_undefined(env, &result));
+
+  return result;
 }
 
 napi_value esBTreeGet(napi_env env, napi_callback_info cbInfo) {
@@ -448,8 +477,8 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     "size",
     NULL,
 
-    esBTreeSize,
     NULL,
+    esBTreeSize,
     NULL,
     NULL,
 
@@ -511,7 +540,19 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
 
     napi_default,
     NULL
-  }};
+  }, {
+    "clear",
+    NULL,
+
+    esClear,
+    NULL,
+    NULL,
+    NULL,
+
+    napi_default,
+    NULL
+  }
+};
 
   size_t propsCnt = sizeof(esBTreeProps) / sizeof(esBTreeProps[0]);
   NAPI_CALL(env, napi_define_properties(env, esBtree, propsCnt, esBTreeProps));

@@ -42,6 +42,12 @@ btree.forEach((k, v) => {
   console.log(k, v);
 });
 */
-for (const val of btree) {
-  console.log(val);
-}
+//for (const val of btree) {
+//  console.log(val);
+//}
+
+btree.clear();
+
+btree.set(1, 2);
+
+btree.clear();

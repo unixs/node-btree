@@ -21,14 +21,14 @@ describe("Base functionality", () => {
 
   test.todo('Check');
 
-  test("Check size method", () => {
+  test("Check size property", () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 50);
     btree.set("30", 30);
     btree.set("15", 150);
 
-    expect(btree.size()).toBe(3);
+    expect(btree.size).toBe(3);
   });
 
   test("Check heigth field", () => {
@@ -85,7 +85,7 @@ describe("Base functionality", () => {
     const result = btree.delete(30);
 
     expect(result).toBe(true);
-    expect(btree.size()).toBe(2);
+    expect(btree.size).toBe(2);
   });
 
   test('Items should be deletable if not exists', () => {
@@ -98,7 +98,39 @@ describe("Base functionality", () => {
     const result = btree.delete(31);
 
     expect(result).toBe(false);
-    expect(btree.size()).toBe(3);
+    expect(btree.size).toBe(3);
+  });
+
+  test('Should be clearable by clear()', () => {
+    const btree = new BTree<string, number>(comparator);
+
+    btree.set("50", 51);
+    btree.set("15", 150);
+    btree.set("30", 30);
+
+    expect(btree.size).toBe(3);
+
+    btree.clear();
+
+    expect(btree.size).toBe(0);
+  });
+
+  test('Should be processable after clear', () => {
+    const btree = new BTree<string, number>(comparator);
+
+    btree.set("50", 51);
+    btree.set("15", 150);
+    btree.set("30", 30);
+
+    expect(btree.size).toBe(3);
+
+    btree.clear();
+
+    expect(btree.size).toBe(0);
+
+    btree.set("One", 1);
+
+    expect(btree.size).toBe(1);
   });
 });
 

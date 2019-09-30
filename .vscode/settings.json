@@ -1,5 +1,8 @@
 {
   "python.pythonPath": "/usr/bin/python",
+  "[c]": {
+    "editor.formatOnType": false
+  },
   "files.associations": {
     "*.c": "c",
     "glib.h": "c",
