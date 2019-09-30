@@ -366,6 +366,7 @@ napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
 
   napi_ref esValueRef;
   napi_value box;
+  napi_value array[2];
   GTreeNode *node;
 
   switch (traverseContext->state) {
@@ -376,7 +377,11 @@ napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
 
       esValueRef = (napi_ref) node->value;
       NAPI_CALL(env, napi_get_reference_value(env, esValueRef, &box)); // es: { key, value }
-      NAPI_CALL(env, napi_get_named_property(env, box, "value", &traverseContext->value));
+      NAPI_CALL(env, napi_create_array_with_length(env, 2, &traverseContext->value));
+      NAPI_CALL(env, napi_get_named_property(env, box, "key", &array[0]));
+      NAPI_CALL(env, napi_set_element(env, traverseContext->value, 0, array[0]));
+      NAPI_CALL(env, napi_get_named_property(env, box, "value", &array[1]));
+      NAPI_CALL(env, napi_set_element(env, traverseContext->value, 1, array[1]));
       break;
 
     case TRAVERSE_LOOP:
@@ -391,7 +396,11 @@ napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
 
       esValueRef = (napi_ref) node->value;
       NAPI_CALL(env, napi_get_reference_value(env, esValueRef, &box)); // es: { key, value }
-      NAPI_CALL(env, napi_get_named_property(env, box, "value", &traverseContext->value));
+      NAPI_CALL(env, napi_create_array_with_length(env, 2, &traverseContext->value));
+      NAPI_CALL(env, napi_get_named_property(env, box, "key", &array[0]));
+      NAPI_CALL(env, napi_set_element(env, traverseContext->value, 0, array[0]));
+      NAPI_CALL(env, napi_get_named_property(env, box, "value", &array[1]));
+      NAPI_CALL(env, napi_set_element(env, traverseContext->value, 1, array[1]));
       break;
 
     case TRAVERSE_END:
@@ -480,6 +489,69 @@ napi_value esBTreeIteratorKeysNext(napi_env env, napi_callback_info cbInfo) {
   return esIteratorResult;
 }
 
+napi_value esBTreeIteratorValuesNext(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis;
+  BTreeTraverseContext_t *traverseContext;
+
+  // Get es this for current btree
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
+
+  // Extract native pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &traverseContext));
+
+  napi_ref esValueRef;
+  napi_value box;
+  GTreeNode *node;
+
+  switch (traverseContext->state) {
+    case TRAVERSE_INIT:
+      traverseContext->state = TRAVERSE_LOOP;
+      node = local_g_tree_first_node(traverseContext->bTree->nativeTree);
+      traverseContext->currentNode = node;
+
+      esValueRef = (napi_ref) node->value;
+      NAPI_CALL(env, napi_get_reference_value(env, esValueRef, &box)); // es: { key, value }
+      NAPI_CALL(env, napi_get_named_property(env, box, "value", &traverseContext->value));
+      break;
+
+    case TRAVERSE_LOOP:
+      node = local_g_tree_node_next(traverseContext->currentNode);
+
+      traverseContext->currentNode = node;
+
+      if (node == NULL) {
+        traverseContext->state = TRAVERSE_END;
+        break;
+      }
+
+      esValueRef = (napi_ref) node->value;
+      NAPI_CALL(env, napi_get_reference_value(env, esValueRef, &box)); // es: { key, value }
+      NAPI_CALL(env, napi_get_named_property(env, box, "value", &traverseContext->value));
+      break;
+
+    case TRAVERSE_END:
+      // noop
+      break;
+  }
+
+  napi_value esIteratorResult, isDone;
+  NAPI_CALL(env, napi_create_object(env, &esIteratorResult));
+
+  if (traverseContext->state == TRAVERSE_END) {
+    NAPI_CALL(env, napi_get_undefined(env, &traverseContext->value));
+    NAPI_CALL(env, napi_get_boolean(env, true, &isDone));
+  }
+  else {
+    NAPI_CALL(env, napi_get_boolean(env, false, &isDone));
+  }
+
+  NAPI_CALL(env, napi_set_named_property(env, esIteratorResult, "value", traverseContext->value));
+  NAPI_CALL(env, napi_set_named_property(env, esIteratorResult, "done", isDone));
+
+
+  return esIteratorResult;
+}
+
 napi_value esBTreeGenerator(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, esIterator;
   BTree_t *bTree;
@@ -522,6 +594,33 @@ napi_value esBTreeKeysGenerator(napi_env env, napi_callback_info cbInfo) {
 
   napi_value nextFunction;
   NAPI_CALL(env, napi_create_function(env, "next", NAPI_AUTO_LENGTH, esBTreeIteratorKeysNext, NULL, &nextFunction));
+  NAPI_CALL(env, napi_set_named_property(env, esIterator, "next", nextFunction));
+
+  BTreeTraverseContext_t *traverseContext = (BTreeTraverseContext_t *) malloc(sizeof(BTreeTraverseContext_t));
+  traverseContext->bTree = bTree;
+  traverseContext->state = TRAVERSE_INIT;
+
+  napi_value ref;
+  NAPI_CALL(env, napi_wrap(env, esIterator, traverseContext, freeIterator, NULL, &ref));
+
+  return esIterator;
+}
+
+napi_value esBTreeValuesGenerator(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis, esIterator;
+  BTree_t *bTree;
+
+  // Get es this for current btree
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
+
+  // Extract native BTree pointer
+  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+
+  // Create es Iterator
+  NAPI_CALL(env, napi_create_object(env, &esIterator));
+
+  napi_value nextFunction;
+  NAPI_CALL(env, napi_create_function(env, "next", NAPI_AUTO_LENGTH, esBTreeIteratorValuesNext, NULL, &nextFunction));
   NAPI_CALL(env, napi_set_named_property(env, esIterator, "next", nextFunction));
 
   BTreeTraverseContext_t *traverseContext = (BTreeTraverseContext_t *) malloc(sizeof(BTreeTraverseContext_t));
@@ -698,10 +797,21 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     napi_default,
     NULL
   }, {
-    "values",
+    "entries",
     NULL,
 
     esBTreeGenerator,
+    NULL,
+    NULL,
+    NULL,
+
+    napi_default,
+    NULL
+  }, {
+    "values",
+    NULL,
+
+    esBTreeValuesGenerator,
     NULL,
     NULL,
     NULL,

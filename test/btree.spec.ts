@@ -180,7 +180,41 @@ describe('Traverse functionality', () => {
     }
   });
 
-  test('Should be iterable by forEach', () => {
+  test('Should be iterable by entries()', () => {
+    const btree = new BTree<string, number>(comparator);
+
+    btree.set("50", 51);
+    btree.set("15", 150);
+    btree.set("30", 30);
+
+    const check = [
+      {
+        key: "15",
+        val: 150
+      },
+      {
+        key: "30",
+        val: 30
+      },
+      {
+        key: "50",
+        val: 51
+      },
+    ];
+
+    const checkIterator = check[Symbol.iterator]();
+    const iterator = btree.entries();
+
+    let expected;
+    while (!(expected = checkIterator.next()).done) {
+      const [key, value] = iterator.next().value;
+
+      expect(key).toBe(expected.value.key);
+      expect(value).toBe(expected.value.val);
+    }
+  });
+
+  test('Should be iterable by forEach()', () => {
     const btree = new BTree<string, number>(comparator);
 
     btree.set("50", 51);
