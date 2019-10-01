@@ -79,6 +79,8 @@ typedef struct {
   napi_value value;
 } BTreeTraverseContext_t;
 
+static napi_ref constructor;
+
 gboolean _removeTreeNode(gpointer key, gpointer val, gpointer data) {
   napi_ref keyRef = (napi_ref) key;
   BTreeTraverseData_t *tData = (BTreeTraverseData_t *) data;
@@ -331,27 +333,6 @@ void freeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
 
 void freeIterator(napi_env env, void *finalize_data, void *finalize_hint) {
   printf("Free iterator.\n");
-}
-
-napi_value init(napi_env env, napi_value exports);
-
-napi_ref constructor;
-
-NAPI_MODULE(NODE_GYP_MODULE_NAME, init);
-
-napi_value __hello(napi_env env, napi_callback_info info) {
-  napi_value dbl, str;
-
-  size_t argc = 1;
-  napi_value argv[1], esThis;
-  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &esThis, NULL));
-
-  NAPI_CALL(env, napi_create_string_utf8(env, "bar", NAPI_AUTO_LENGTH, &str));
-  NAPI_CALL(env, napi_create_double(env, 10.5, &dbl));
-
-  NAPI_CALL(env, napi_set_named_property(env, argv[0], "foo", str));
-
-  return dbl;
 }
 
 napi_value esBTreeIteratorNext(napi_env env, napi_callback_info cbInfo) {
@@ -881,15 +862,6 @@ napi_value init(napi_env env, napi_value exports) {
   NAPI_CALL(env, napi_create_reference(env, esBTreeClass, 1, &constructor));
 
   napi_property_descriptor props[] = {{
-    "hello",
-    NULL,
-    __hello,
-    NULL,
-    NULL,
-    NULL,
-    napi_default,
-    NULL
-  }, {
     "BTree",
     NULL,
     NULL,
@@ -905,3 +877,5 @@ napi_value init(napi_env env, napi_value exports) {
 
   return exports;
 }
+
+NAPI_MODULE(NODE_GYP_MODULE_NAME, init);
