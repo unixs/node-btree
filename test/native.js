@@ -25,7 +25,7 @@ function comparator(a, b) {
   }
 }
 
-const btree = new BTree(comparator);
+let btree = new BTree(comparator);
 
 //for (let i = 1; i <= 3000000; i++) {
 //  btree.set(i, i);
@@ -38,6 +38,19 @@ btree.set("30", 30);
 btree.set("18", 81);
 btree.set("100", 0);
 
+btree.delete("100");
+
+btree = null;
+
+global.gc();
+
+const m = new Map();
+
+m.set(1, 2);
+
+
+console.log(m);
+/*
 btree.forEach((k, v) => {
   console.log(k, v);
 });
@@ -46,3 +59,4 @@ for (const val of btree) {
   console.log(val);
 }
 
+*/

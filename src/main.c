@@ -2,58 +2,10 @@
 #include <stdlib.h>
 #include <setjmp.h>
 #include <node_api.h>
-#include "include/common.h"
 #include <glib.h>
 
-typedef struct _GTreeNode GTreeNode;
-
-struct _GTreeNode {
-  gpointer key;     /* key for this node */
-  gpointer value;   /* value stored at this node */
-  GTreeNode *left;  /* left subtree */
-  GTreeNode *right; /* right subtree */
-  gint8 balance;    /* height (right) - height (left) */
-  guint8 left_child;
-  guint8 right_child;
-};
-
-struct _GTree {
-  GTreeNode *root;
-  GCompareDataFunc key_compare;
-  GDestroyNotify key_destroy_func;
-  GDestroyNotify value_destroy_func;
-  gpointer key_compare_data;
-  guint nnodes;
-  gint ref_count;
-};
-
-static inline GTreeNode* local_g_tree_first_node(GTree *tree) {
-  GTreeNode *tmp;
-
-  if (!tree->root)
-    return NULL;
-
-  tmp = tree->root;
-
-  while (tmp->left_child)
-    tmp = tmp->left;
-
-  return tmp;
-}
-
-static inline GTreeNode* local_g_tree_node_next(GTreeNode *node) {
-  GTreeNode *tmp;
-
-  tmp = node->right;
-
-  if (node->right_child)
-    while (tmp->left_child)
-      tmp = tmp->left;
-
-  return tmp;
-}
-
-// -------------------------->
+#include "include/common.h"
+#include "include/glib_local.h"
 
 enum state {
   TRAVERSE_INIT,
@@ -66,6 +18,11 @@ typedef struct {
   napi_ref comparator;
   GTree *nativeTree;
 } BTree_t;
+
+typedef struct {
+  napi_env env;
+  napi_ref ref;
+} TreeNode_t;
 
 typedef struct {
   BTree_t *bTree;
@@ -90,11 +47,41 @@ gboolean _removeTreeNode(gpointer key, gpointer val, gpointer data) {
   return FALSE;
 }
 
-void freeNativeTreeNode(gpointer data) {
-  printf("Free native node.\n");
+/**
+ * Unref all bTree nodes for GC access
+ */
+static void freeNativeBTreeNode(gpointer key, gpointer value, gpointer data) {
+  napi_ref objRef = (napi_ref) key;
+  BTree_t *bTree = (BTree_t *) data;
+
+  NAPI_CALL(bTree->env, napi_delete_reference(bTree->env, objRef));
+
+  return FALSE;
 }
 
-gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
+/**
+ * Free allocated GTree & unref comparator for GC access
+ */
+void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
+  BTree_t *bTree = (BTree_t *) finalize_data;
+
+  // Destroy ref to comparator function for GC access
+  NAPI_CALL(env, napi_delete_reference(env, bTree->comparator));
+
+  // Remove all nodes
+  g_tree_foreach(bTree->nativeTree, freeNativeBTreeNode, (gpointer) bTree);
+
+  // Destroy native bTree
+  g_tree_destroy(bTree->nativeTree);
+
+  // Release native bTree memory
+  g_free((gpointer) bTree->nativeTree);
+
+  // Release BTree_t struct memory
+  g_free((gpointer) bTree);
+}
+
+static inline gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
   int64_t compareResult = 0;
 
   BTree_t *bTreeWrap = (BTree_t *) bTree;
@@ -161,14 +148,12 @@ napi_value esBTreeSize(napi_env env, napi_callback_info cbInfo) {
 }
 
 napi_value esBTreeDelete(napi_env env, napi_callback_info cbInfo) {
-  napi_value esThis, result;
+  napi_value esThis, result, box;
   napi_ref boxRef;
   BTree_t *bTree;
 
   size_t argc = 1;
   napi_value argv[1];
-
-  napi_value box;
 
   // Get es this
   NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
@@ -184,7 +169,20 @@ napi_value esBTreeDelete(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_set_named_property(env, box, "key", argv[0]));
   NAPI_CALL(env, napi_create_reference(env, box, 0, &boxRef));
 
-  gboolean found = g_tree_remove(bTree->nativeTree, boxRef);
+  gboolean found = FALSE;
+
+  // Find value
+  napi_ref esObjRef = g_tree_lookup(bTree->nativeTree, boxRef);
+
+  if (esObjRef != NULL) {
+    found = TRUE;
+
+    // Remove bTree node
+    g_tree_remove(bTree->nativeTree, boxRef);
+
+    // Unref es value for GC access
+    NAPI_CALL(env, napi_delete_reference(env, boxRef));
+  }
 
   NAPI_CALL(env, napi_get_boolean(env, found, &result));
 
@@ -215,15 +213,17 @@ napi_value esBTreeSet(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_set_named_property(env, box, "value", value));
 
   napi_ref boxRef;
-  // NAPI_CALL(env, napi_wrap(env, box, bTree, NULL, NULL, &boxRef));
+
+  // Attach env to es object for correct unref on destroy
+  // NAPI_CALL(env, napi_wrap(env, box, env, NULL, NULL, &boxRef));
 
   // size_t refCnt;
   // NAPI_CALL(env, napi_reference_ref(env, boxRef, NULL));
-  NAPI_CALL(env, napi_create_reference(env, box, 1, &boxRef));
+  NAPI_CALL(env, napi_create_reference(env, box, 1, &boxRef)); // NOTE: Pass
 
   // Native call to glib tree
   bTree->env = env;
-  // BUG: Memory leak. Old nodes not freed properly
+
   g_tree_insert(bTree->nativeTree, boxRef, boxRef);
 
   return esThis;
@@ -324,11 +324,6 @@ napi_value esBTreeGet(napi_env env, napi_callback_info cbInfo) {
   }
 
   return result;
-}
-
-void freeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
-  // BUG: Incorrect memory free.
-  free(finalize_data);
 }
 
 void freeIterator(napi_env env, void *finalize_data, void *finalize_hint) {
@@ -662,7 +657,7 @@ napi_value esBTreeForeach(napi_env env, napi_callback_info cbInfo) {
   return undefined;
 }
 
-napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
+static napi_value esBTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   napi_value esBtree;
   napi_ref ref;
 
@@ -671,10 +666,10 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &esBtree, NULL));
 
   // Allocate memory for usre data wich recived in native comparator
-  BTree_t *bTree = (BTree_t *) malloc(sizeof(BTree_t));
+  BTree_t *bTree = (BTree_t *) malloc(sizeof(BTree_t)); // NOTE: Pass
 
   // Initialize native BTree with native comparator & additional user data
-  GTree *nativeTree = g_tree_new_full(nativeComparator, bTree, freeNativeTreeNode, NULL);
+  GTree *nativeTree = g_tree_new_with_data(nativeComparator, bTree);
 
   napi_valuetype comparatorType;
   NAPI_CALL(env, napi_typeof(env, argv[0], &comparatorType));
@@ -686,171 +681,179 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   // Fill user data
   bTree->nativeTree = nativeTree;
   bTree->env = env;
-  NAPI_CALL(env, napi_create_reference(env, argv[0], 1, &bTree->comparator));
+  NAPI_CALL(env, napi_create_reference(env, argv[0], 1, &bTree->comparator)); // NOTE: Pass
 
-  // Create es function
-  //napi_value esBTreeSetCallback;
-  //NAPI_CALL(env, napi_create_function(env, "set", NAPI_AUTO_LENGTH, esBTreeSet, NULL, &esBTreeSetCallback));
+  // Wrap native data in ES variable for native access again
+  NAPI_CALL(env, napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, &ref)); // NOTE: Pass
 
+  // TODO: Need macros for get symbol
   napi_value global, Symbol, symbolIterator;
   NAPI_CALL(env, napi_get_global(env, &global));
   NAPI_CALL(env, napi_get_named_property(env, global, "Symbol", &Symbol));
   NAPI_CALL(env, napi_get_named_property(env, Symbol, "iterator", &symbolIterator));
 
-
   // Define comparator as not enumerable & ro property of es btree instance
-  napi_property_descriptor esBTreeProps[] = {{
-    "comparator",
-    NULL,
+  napi_property_descriptor esBTreeProps[] = {
+    {
+      "comparator",
+      NULL,
 
-    NULL,
-    NULL,
-    NULL,
-    bTree->comparator,
+      NULL,
+      NULL,
+      NULL,
+      bTree->comparator,
 
-    napi_default,
-    NULL
-  }, {
-    "height",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "height",
+      NULL,
 
-    NULL,
-    esBTreeHeight,
-    NULL,
-    NULL,
+      NULL,
+      esBTreeHeight,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "size",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "size",
+      NULL,
 
-    NULL,
-    esBTreeSize,
-    NULL,
-    NULL,
+      NULL,
+      esBTreeSize,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "set",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "set",
+      NULL,
 
-    esBTreeSet,
-    NULL,
-    NULL,
-    NULL,
+      esBTreeSet,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "get",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "get",
+      NULL,
 
-    esBTreeGet,
-    NULL,
-    NULL,
-    NULL,
+      esBTreeGet,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "delete",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "delete",
+      NULL,
 
-    esBTreeDelete,
-    NULL,
-    NULL,
-    NULL,
+      esBTreeDelete,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    NULL,
-    // [Symbol.iterator]
-    symbolIterator,
+      napi_default,
+      NULL
+    },
+    {
+      NULL,
+      // [Symbol.iterator]
+      symbolIterator,
 
-    esBTreeGenerator,
-    NULL,
-    NULL,
-    NULL,
+      esBTreeGenerator,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "entries",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "entries",
+      NULL,
 
-    esBTreeGenerator,
-    NULL,
-    NULL,
-    NULL,
+      esBTreeGenerator,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "values",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "values",
+      NULL,
 
-    esBTreeValuesGenerator,
-    NULL,
-    NULL,
-    NULL,
+      esBTreeValuesGenerator,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "keys",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "keys",
+      NULL,
 
-    esBTreeKeysGenerator,
-    NULL,
-    NULL,
-    NULL,
+      esBTreeKeysGenerator,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "forEach",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "forEach",
+      NULL,
 
-    esBTreeForeach,
-    NULL,
-    NULL,
-    NULL,
+      esBTreeForeach,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "clear",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "clear",
+      NULL,
 
-    esClear,
-    NULL,
-    NULL,
-    NULL,
+      esClear,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }, {
-    "has",
-    NULL,
+      napi_default,
+      NULL
+    },
+    {
+      "has",
+      NULL,
 
-    esHas,
-    NULL,
-    NULL,
-    NULL,
+      esHas,
+      NULL,
+      NULL,
+      NULL,
 
-    napi_default,
-    NULL
-  }
-};
+      napi_default,
+      NULL
+    }
+  };
 
-  size_t propsCnt = sizeof(esBTreeProps) / sizeof(esBTreeProps[0]);
-  NAPI_CALL(env, napi_define_properties(env, esBtree, propsCnt, esBTreeProps));
-
-  // Wrap native data in ES variable for native access again
-  NAPI_CALL(env, napi_wrap(env, esBtree, bTree, freeBTree, NULL, &ref));
+  NAPI_CALL(env, napi_define_properties(env, esBtree, (sizeof(esBTreeProps) / sizeof(esBTreeProps[0])), esBTreeProps));
 
   return esBtree;
 }
@@ -858,8 +861,8 @@ napi_value BTreeConstructor(napi_env env, napi_callback_info cbInfo) {
 napi_value init(napi_env env, napi_value exports) {
   napi_value esBTreeClass;
 
-  NAPI_CALL(env, napi_define_class(env, "BTree", NAPI_AUTO_LENGTH, BTreeConstructor, NULL, 0, NULL, &esBTreeClass));
-  NAPI_CALL(env, napi_create_reference(env, esBTreeClass, 1, &constructor));
+  NAPI_CALL(env, napi_define_class(env, "BTree", NAPI_AUTO_LENGTH, esBTreeConstructor, NULL, 0, NULL, &esBTreeClass));
+  NAPI_CALL(env, napi_create_reference(env, esBTreeClass, 1, &constructor)); // NOTE: Pass
 
   napi_property_descriptor props[] = {{
     "BTree",
@@ -872,8 +875,7 @@ napi_value init(napi_env env, napi_value exports) {
     NULL
   }};
 
-  size_t propsCnt = sizeof(props) / sizeof(props[0]);
-  NAPI_CALL(env, napi_define_properties(env, exports, propsCnt, props));
+  NAPI_CALL(env, napi_define_properties(env, exports, (sizeof(props) / sizeof(props[0])), props));
 
   return exports;
 }
