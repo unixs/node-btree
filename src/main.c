@@ -686,6 +686,27 @@ static napi_value esBTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   // Wrap native data in ES variable for native access again
   NAPI_CALL(env, napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, &ref)); // NOTE: Pass
 
+  napi_property_descriptor comparator = {
+    "comparator",
+    NULL,
+
+    NULL,
+    NULL,
+    NULL,
+    bTree->comparator,
+
+    napi_default,
+    NULL
+  };
+
+  NAPI_CALL(env, napi_define_properties(env, esBtree, 1, &comparator));
+
+  return esBtree;
+}
+
+napi_value init(napi_env env, napi_value exports) {
+  napi_value esBTreeClass;
+
   // TODO: Need macros for get symbol
   napi_value global, Symbol, symbolIterator;
   NAPI_CALL(env, napi_get_global(env, &global));
@@ -694,18 +715,6 @@ static napi_value esBTreeConstructor(napi_env env, napi_callback_info cbInfo) {
 
   // Define comparator as not enumerable & ro property of es btree instance
   napi_property_descriptor esBTreeProps[] = {
-    {
-      "comparator",
-      NULL,
-
-      NULL,
-      NULL,
-      NULL,
-      bTree->comparator,
-
-      napi_default,
-      NULL
-    },
     {
       "height",
       NULL,
@@ -853,16 +862,11 @@ static napi_value esBTreeConstructor(napi_env env, napi_callback_info cbInfo) {
     }
   };
 
-  NAPI_CALL(env, napi_define_properties(env, esBtree, (sizeof(esBTreeProps) / sizeof(esBTreeProps[0])), esBTreeProps));
+  NAPI_CALL(env,
+    napi_define_class(env, "BTree", NAPI_AUTO_LENGTH, esBTreeConstructor, NULL, (sizeof(esBTreeProps) / sizeof(esBTreeProps[0])), esBTreeProps, &esBTreeClass));
 
-  return esBtree;
-}
-
-napi_value init(napi_env env, napi_value exports) {
-  napi_value esBTreeClass;
-
-  NAPI_CALL(env, napi_define_class(env, "BTree", NAPI_AUTO_LENGTH, esBTreeConstructor, NULL, 0, NULL, &esBTreeClass));
-  NAPI_CALL(env, napi_create_reference(env, esBTreeClass, 1, &constructor)); // NOTE: Pass
+  NAPI_CALL(env,
+    napi_create_reference(env, esBTreeClass, 1, &constructor)); // NOTE: Pass
 
   napi_property_descriptor props[] = {{
     "BTree",

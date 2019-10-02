@@ -31,7 +31,7 @@
       "request": "launch",
       "name": "Launch Program",
       "runtimeArgs": [
-        //"--expose-gc"
+        "--expose-gc"
       ],
       "program": "${workspaceFolder}/test/native.js",
     }
