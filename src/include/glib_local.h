@@ -1,5 +1,7 @@
 #include <glib.h>
 
+typedef struct __FakeNode* GTreeNode_t;
+
 // FROM glib/gtree.c
 
 typedef struct _GTreeNode GTreeNode;
@@ -16,15 +18,11 @@ struct _GTreeNode {
 
 struct _GTree {
   GTreeNode *root;
-  GCompareDataFunc key_compare;
-  GDestroyNotify key_destroy_func;
-  GDestroyNotify value_destroy_func;
-  gpointer key_compare_data;
-  guint nnodes;
-  gint ref_count;
 };
 
-static inline GTreeNode *local_g_tree_first_node(GTree *tree) {
+#define local_g_tree_node_value(node) ((GTreeNode *) node)->value
+
+static inline GTreeNode_t local_g_tree_first_node(GTree *tree) {
   GTreeNode *tmp;
 
   if (!tree->root)
@@ -35,10 +33,11 @@ static inline GTreeNode *local_g_tree_first_node(GTree *tree) {
   while (tmp->left_child)
     tmp = tmp->left;
 
-  return tmp;
+  return (GTreeNode_t) tmp;
 }
 
-static inline GTreeNode *local_g_tree_node_next(GTreeNode *node) {
+static inline GTreeNode_t local_g_tree_node_next(GTreeNode_t fake) {
+  GTreeNode *node = (GTreeNode *) fake;
   GTreeNode *tmp;
 
   tmp = node->right;
@@ -47,7 +46,7 @@ static inline GTreeNode *local_g_tree_node_next(GTreeNode *node) {
     while (tmp->left_child)
       tmp = tmp->left;
 
-  return tmp;
+  return (GTreeNode_t) tmp;
 }
 
 // / FROM glib/gtree.c

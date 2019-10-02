@@ -19,8 +19,6 @@ describe("Base functionality", () => {
     expect(btree).toBeInstanceOf(BTree);
   });
 
-  test.todo('Check');
-
   test("Check size property", () => {
     const btree = new BTree(comparator);
 
@@ -310,5 +308,14 @@ describe('Traverse functionality', () => {
 
       expect(value).toBe(expected.value.key);
     }
+  });
+
+  test('Should be iterable if empty', () => {
+    const btree = new BTree<string, number>(comparator);
+
+    const result = btree.entries().next();
+
+    expect(result.value).toBe(undefined);
+    expect(result.done).toBe(true);
   });
 });
