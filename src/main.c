@@ -79,7 +79,7 @@ static inline void iteratorResultValueCb(BTreeIteratorContext_t *ctxt) {
   NAPI_CALL(env, napi_get_named_property(env, esValue, "value", &ctxt->value));
 }
 
-gboolean _removeTreeNode(gpointer key, gpointer val, gpointer data) {
+static inline gboolean _removeTreeNode(gpointer key, gpointer val, gpointer data) {
   napi_ref keyRef = (napi_ref) key;
   BTreeTraverseData_t *tData = (BTreeTraverseData_t *) data;
 
@@ -187,7 +187,7 @@ napi_value esBTreeSize(napi_env env, napi_callback_info cbInfo) {
   gint nativeSize = g_tree_nnodes(bTree->nativeTree);
 
   // Convert from C type to es type
-  NAPI_CALL(env, napi_create_int64(env, nativeSize, &esSize));
+  NAPI_CALL(env, napi_create_int64(env, (int64_t) nativeSize, &esSize));
 
   return esSize;
 }

@@ -12,12 +12,15 @@ function comparator(a: any, b: any): number {
   }
 }
 
-describe("Base functionality", () => {
+describe("Inheritance", () => {
   test("Create BTree instance", () => {
     const btree = new BTree(comparator);
 
     expect(btree).toBeInstanceOf(BTree);
   });
+});
+
+describe("Base functionality", () => {
 
   test("Check size property", () => {
     const btree = new BTree(comparator);
