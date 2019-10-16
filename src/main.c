@@ -115,9 +115,6 @@ void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
   // Destroy native bTree
   g_tree_destroy(bTree->nativeTree);
 
-  // Release native bTree memory
-  g_free((gpointer) bTree->nativeTree);
-
   // Release BTree_t struct memory
   g_free((gpointer) bTree);
 }

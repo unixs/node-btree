@@ -1,4 +1,4 @@
-import { BTree } from "../lib/binding/Debug/node-v72-linux-x64/node_btree";
+import { BTree } from "../lib";
 
 function comparator(a: any, b: any): number {
   if (a > b) {

@@ -3,8 +3,8 @@
     "target": "es2019",
     "allowJs": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    // "esModuleInterop": true,
+    // "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
@@ -19,7 +19,6 @@
   "exclude": [
     "./node_modules",
     "./src",
-    "./lib",
     "./build",
     "./tmp"
   ]

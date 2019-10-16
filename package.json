@@ -2,9 +2,10 @@
   "name": "node-btree",
   "version": "0.1.0",
   "description": "Node.js native N-API mixin implementation",
-  "main": "main.js",
+  "main": "./lib/index",
+  "types": "./typings/btree.d.ts",
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build --debug",
+    "install": "node-pre-gyp install --fallback-to-build",
     "test": "jest"
   },
   "binary": {
@@ -24,7 +25,6 @@
     "url": "https://github.com/unixs/node-btree/issues"
   },
   "homepage": "https://github.com/unixs/node-btree#readme",
-  "types": "./typings/btree.d.ts",
   "dependencies": {
     "node-pre-gyp": "~0.13.0"
   },
