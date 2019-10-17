@@ -13,7 +13,7 @@ function comparator(a, b) {
 }
 
 describe("Inheritance", () => {
-  test("Create BTree instance", () => {
+  it("Create BTree instance", () => {
     const btree = new BTree(comparator);
 
     expect(btree).toBeInstanceOf(BTree);
@@ -21,8 +21,13 @@ describe("Inheritance", () => {
 });
 
 describe("Base functionality", () => {
+  it("Check size property if empty", () => {
+    const btree = new BTree(comparator);
 
-  test("Check size property", () => {
+    expect(btree.size).toBe(0);
+  });
+
+  it("Check size property if has values", () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 50);
@@ -32,7 +37,7 @@ describe("Base functionality", () => {
     expect(btree.size).toBe(3);
   });
 
-  test("Check heigth field", () => {
+  it("Check heigth field", () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 50);
@@ -42,7 +47,7 @@ describe("Base functionality", () => {
     expect(btree.height).toBe(2);
   });
 
-  test("Check get method (number => string)", () => {
+  it("Check get method (number => string)", () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 50);
@@ -54,7 +59,7 @@ describe("Base functionality", () => {
   });
 
 
-  test("Check get method (string => string)", () => {
+  it("Check get method (string => string)", () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 50);
@@ -65,7 +70,7 @@ describe("Base functionality", () => {
     expect(btree.get("15")).toBe(150);
   });
 
-  test("Check get method (string => number)", () => {
+  it("Check get method (string => number)", () => {
     const btree = new BTree(comparator);
 
     btree.set(50, 50);
@@ -76,7 +81,7 @@ describe("Base functionality", () => {
     expect(btree.get("15")).toBe(150);
   });
 
-  test('Items should be deletable if exists', () => {
+  it('Items should be deletable if exists', () => {
     const btree = new BTree(comparator);
 
     btree.set(50, 50);
@@ -89,7 +94,7 @@ describe("Base functionality", () => {
     expect(btree.size).toBe(2);
   });
 
-  test('Items should be deletable if not exists', () => {
+  it('Items should be deletable if not exists', () => {
     const btree = new BTree(comparator);
 
     btree.set(50, 50);
@@ -102,7 +107,7 @@ describe("Base functionality", () => {
     expect(btree.size).toBe(3);
   });
 
-  test('Should be clearable by clear()', () => {
+  it('Should be clearable by clear()', () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 51);
@@ -116,7 +121,7 @@ describe("Base functionality", () => {
     expect(btree.size).toBe(0);
   });
 
-  test('Should be processable after clear', () => {
+  it('Should be processable after clear', () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 51);
@@ -134,7 +139,7 @@ describe("Base functionality", () => {
     expect(btree.size).toBe(1);
   });
 
-  test('Should be chackable by has method', () => {
+  it('Should be chackable by has method', () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 51);
@@ -149,7 +154,7 @@ describe("Base functionality", () => {
 });
 
 describe('Traverse functionality', () => {
-  test('Should be iterable by for-of', () => {
+  it('Should be iterable by for-of', () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 51);
@@ -181,7 +186,7 @@ describe('Traverse functionality', () => {
     }
   });
 
-  test('Should be iterable by entries()', () => {
+  it('Should be iterable by entries()', () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 51);
@@ -216,7 +221,7 @@ describe('Traverse functionality', () => {
     }
   });
 
-  test('Should be iterable by forEach()', () => {
+  it('Should be iterable by forEach()', () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 51);
@@ -248,7 +253,7 @@ describe('Traverse functionality', () => {
     });
   });
 
-  test('Should be iterable by values()', () => {
+  it('Should be iterable by values()', () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 51);
@@ -282,7 +287,7 @@ describe('Traverse functionality', () => {
     }
   });
 
-  test('Should be iterable by keys()', () => {
+  it('Should be iterable by keys()', () => {
     const btree = new BTree(comparator);
 
     btree.set("50", 51);
@@ -316,7 +321,7 @@ describe('Traverse functionality', () => {
     }
   });
 
-  test('Should be iterable if empty', () => {
+  it('Should be iterable if empty', () => {
     const btree = new BTree(comparator);
 
     const result = btree.entries().next();

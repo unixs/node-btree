@@ -106,9 +106,6 @@ static void freeNativeBTreeNode(gpointer key, gpointer value, gpointer data) {
 void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
   BTree_t *bTree = (BTree_t *) finalize_data;
 
-  // Destroy ref to comparator function for GC access
-  NAPI_CALL(env, napi_delete_reference(env, bTree->comparator));
-
   // Remove all nodes
   g_tree_foreach(bTree->nativeTree, freeNativeBTreeNode, (gpointer) bTree);
 
@@ -520,7 +517,7 @@ static napi_value esBTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   // Fill user data
   bTree->nativeTree = nativeTree;
   bTree->env = env;
-  NAPI_CALL(env, napi_create_reference(env, argv[0], 1, &bTree->comparator)); // NOTE: Pass
+  NAPI_CALL(env, napi_create_reference(env, argv[0], 0, &bTree->comparator));
 
   // Wrap native data in ES variable for native access again
   NAPI_CALL(env, napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, &ref)); // NOTE: Pass
