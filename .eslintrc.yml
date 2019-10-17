@@ -1,0 +1,128 @@
+root: true
+env:
+  node: true
+  es6: true
+  commonjs: true
+  jest/globals: true
+parserOptions:
+  ecmaVersion: 2019
+  sourceType: module
+  ecmaFeatures:
+    jsx: false
+extends:
+  - eslint:recommended
+  - plugin:jest/recommended
+plugins:
+  - jest
+
+rules:
+  indent:
+    - warn
+    - 2
+    - SwitchCase: 1
+      VariableDeclarator:
+        var: 1
+        let: 1
+        const: 3
+      MemberExpression: 1
+      outerIIFEBody: 0
+    #  FunctionExpression:
+    #    parameters: first
+  linebreak-style:
+    - warn
+    - unix
+  quotes: 0
+  semi:
+    - error
+    - always
+    - omitLastInOneLineBlock: true
+  no-unused-vars:
+    - error
+    - argsIgnorePattern: "^_"
+  no-extra-semi: warn
+  no-extra-boolean-cast: error
+  no-case-declarations: 0
+  no-return-assign: 0
+  no-console: 0
+  no-empty:
+    - error
+    - allowEmptyCatch: true
+  one-var:
+    - error
+    - const: never
+      var: always
+      let: always
+      # initialized: always
+      # uninitialized: never
+  no-fallthrough:
+    - error
+    - commentPattern: "break[\\s\\w]*omitted"
+  key-spacing:
+    - error
+    - beforeColon: false
+      afterColon: true
+      mode: minimum
+  newline-after-var:
+    - warn
+    - always
+  keyword-spacing:
+    - error
+  space-before-function-paren:
+    - error
+    - anonymous: never
+      named: never
+      asyncArrow: always
+  space-before-blocks:
+    - error
+  rest-spread-spacing:
+    - error
+    - never
+  space-infix-ops:
+    - error
+  comma-spacing:
+    - error
+    - before: false
+      after: true
+  array-bracket-spacing:
+    - error
+    - never
+    - singleValue: true
+      arraysInArrays: false
+  comma-style:
+    - error
+    - last
+  curly:
+    - error
+  brace-style:
+    - warn
+    - stroustrup
+    - allowSingleLine: false
+  vars-on-top:
+    - error
+  prefer-arrow-callback:
+    - warn
+    - allowNamedFunctions: true
+  arrow-parens:
+    - error
+    - as-needed
+    - requireForBlockBody: true
+  arrow-spacing:
+    - error
+  block-spacing:
+    - error
+  object-curly-spacing:
+    - error
+    - always
+    - arraysInObjects: true
+      objectsInObjects: true
+  newline-before-return:
+    - error
+  # strict:
+  #  - warn
+  #  - global
+  generator-star-spacing:
+    - error
+    - before: false
+      after: true
+  jest/no-disabled-tests:
+    - 0

@@ -1,6 +1,6 @@
 import { BTree } from "../lib";
 
-function comparator(a: any, b: any): number {
+function comparator(a, b) {
   if (a > b) {
     return 1;
   }
@@ -103,7 +103,7 @@ describe("Base functionality", () => {
   });
 
   test('Should be clearable by clear()', () => {
-    const btree = new BTree<string, number>(comparator);
+    const btree = new BTree(comparator);
 
     btree.set("50", 51);
     btree.set("15", 150);
@@ -117,7 +117,7 @@ describe("Base functionality", () => {
   });
 
   test('Should be processable after clear', () => {
-    const btree = new BTree<string, number>(comparator);
+    const btree = new BTree(comparator);
 
     btree.set("50", 51);
     btree.set("15", 150);
@@ -135,7 +135,7 @@ describe("Base functionality", () => {
   });
 
   test('Should be chackable by has method', () => {
-    const btree = new BTree<string, number>(comparator);
+    const btree = new BTree(comparator);
 
     btree.set("50", 51);
     btree.set("15", 150);
@@ -150,7 +150,7 @@ describe("Base functionality", () => {
 
 describe('Traverse functionality', () => {
   test('Should be iterable by for-of', () => {
-    const btree = new BTree<string, number>(comparator);
+    const btree = new BTree(comparator);
 
     btree.set("50", 51);
     btree.set("15", 150);
@@ -182,7 +182,7 @@ describe('Traverse functionality', () => {
   });
 
   test('Should be iterable by entries()', () => {
-    const btree = new BTree<string, number>(comparator);
+    const btree = new BTree(comparator);
 
     btree.set("50", 51);
     btree.set("15", 150);
@@ -207,6 +207,7 @@ describe('Traverse functionality', () => {
     const iterator = btree.entries();
 
     let expected;
+
     while (!(expected = checkIterator.next()).done) {
       const [key, value] = iterator.next().value;
 
@@ -216,7 +217,7 @@ describe('Traverse functionality', () => {
   });
 
   test('Should be iterable by forEach()', () => {
-    const btree = new BTree<string, number>(comparator);
+    const btree = new BTree(comparator);
 
     btree.set("50", 51);
     btree.set("15", 150);
@@ -248,7 +249,7 @@ describe('Traverse functionality', () => {
   });
 
   test('Should be iterable by values()', () => {
-    const btree = new BTree<string, number>(comparator);
+    const btree = new BTree(comparator);
 
     btree.set("50", 51);
     btree.set("15", 150);
@@ -273,6 +274,7 @@ describe('Traverse functionality', () => {
     const iterator = btree.values();
 
     let expected;
+
     while (!(expected = checkIterator.next()).done) {
       const value = iterator.next().value;
 
@@ -281,7 +283,7 @@ describe('Traverse functionality', () => {
   });
 
   test('Should be iterable by keys()', () => {
-    const btree = new BTree<string, number>(comparator);
+    const btree = new BTree(comparator);
 
     btree.set("50", 51);
     btree.set("15", 150);
@@ -306,6 +308,7 @@ describe('Traverse functionality', () => {
     const iterator = btree.keys();
 
     let expected;
+
     while (!(expected = checkIterator.next()).done) {
       const value = iterator.next().value;
 
@@ -314,7 +317,7 @@ describe('Traverse functionality', () => {
   });
 
   test('Should be iterable if empty', () => {
-    const btree = new BTree<string, number>(comparator);
+    const btree = new BTree(comparator);
 
     const result = btree.entries().next();
 

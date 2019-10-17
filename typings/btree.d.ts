@@ -1,13 +1,13 @@
-export interface BTreeComarator<K> {
+export interface BTreeComparator<K> {
   (a: K, b: K): number;
 }
 
 class BTree<K, V> extends Map<K, V> {
   public readonly height: number;
   public readonly size: number;
-  public readonly comparator: BTreeComarator<K>
+  public readonly comparator: BTreeComparator<K>
 
-  constructor(comparator: BTreeComarator<K>, entries?: ReadonlyArray<readonly [K, V]> | null);
+  constructor(comparator: BTreeComparator<K>, entries?: ReadonlyArray<readonly [K, V]> | null);
 
   set(key: K, value: V): this;
   get(key: K): V | undefined;
