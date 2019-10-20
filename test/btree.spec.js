@@ -22,6 +22,16 @@ describe("Inheritance", () => {
 
 describe("Base functionality", () => {
 
+  function initBtree() {
+    const btree = new BTree(comparator);
+
+    btree.set("50", 50);
+    btree.set("30", 30);
+    btree.set("15", 150);
+
+    return btree;
+  }
+
   describe("BTree specific", () => {
 
     it('Should have correct height field without nodes', () => {
@@ -31,11 +41,7 @@ describe("Base functionality", () => {
     });
 
     it("Should have correct heigth field with nodes", () => {
-      const btree = new BTree(comparator);
-
-      btree.set("50", 50);
-      btree.set("30", 30);
-      btree.set("15", 150);
+      const btree = initBtree();
 
       expect(btree.height).toBe(2);
     });
@@ -51,35 +57,19 @@ describe("Base functionality", () => {
     });
 
     it("Check size property if has values", () => {
-      const btree = new BTree(comparator);
-
-      btree.set("50", 50);
-      btree.set("30", 30);
-      btree.set("15", 150);
+      const btree = initBtree();
 
       expect(btree.size).toBe(3);
     });
 
-
     it("Check get method (number => string)", () => {
-      const btree = new BTree(comparator);
-
-      btree.set("50", 50);
-      btree.set("30", 30);
-      btree.set("15", 150);
-
+      const btree = initBtree();
 
       expect(btree.get(15)).toBe(150);
     });
 
-
     it("Check get method (string => string)", () => {
-      const btree = new BTree(comparator);
-
-      btree.set("50", 50);
-      btree.set("30", 30);
-      btree.set("15", 150);
-
+      const btree = initBtree();
 
       expect(btree.get("15")).toBe(150);
     });
@@ -91,29 +81,28 @@ describe("Base functionality", () => {
       btree.set(30, 30);
       btree.set(15, 150);
 
-
       expect(btree.get("15")).toBe(150);
     });
 
+    it('Should be addable if key exists', () => {
+      const btree = initBtree();
+
+      btree.set("30", 40);
+
+      expect(btree.get("30")).toBe(40);
+    });
+
     it('Items should be deletable if exists', () => {
-      const btree = new BTree(comparator);
+      const btree = initBtree();
 
-      btree.set(50, 50);
-      btree.set(30, 30);
-      btree.set(15, 150);
-
-      const result = btree.delete(30);
+      const result = btree.delete("30");
 
       expect(result).toBe(true);
       expect(btree.size).toBe(2);
     });
 
     it('Items should be deletable if not exists', () => {
-      const btree = new BTree(comparator);
-
-      btree.set(50, 50);
-      btree.set(30, 30);
-      btree.set(15, 150);
+      const btree = initBtree();
 
       const result = btree.delete(31);
 
@@ -122,11 +111,7 @@ describe("Base functionality", () => {
     });
 
     it('Should be clearable by clear()', () => {
-      const btree = new BTree(comparator);
-
-      btree.set("50", 51);
-      btree.set("15", 150);
-      btree.set("30", 30);
+      const btree = initBtree();
 
       expect(btree.size).toBe(3);
 
@@ -136,11 +121,7 @@ describe("Base functionality", () => {
     });
 
     it('Should be processable after clear', () => {
-      const btree = new BTree(comparator);
-
-      btree.set("50", 51);
-      btree.set("15", 150);
-      btree.set("30", 30);
+      const btree = initBtree();
 
       expect(btree.size).toBe(3);
 
@@ -154,11 +135,7 @@ describe("Base functionality", () => {
     });
 
     it('Should be chackable by has method', () => {
-      const btree = new BTree(comparator);
-
-      btree.set("50", 51);
-      btree.set("15", 150);
-      btree.set("30", 30);
+      const btree = initBtree();
 
       expect(btree.size).toBe(3);
 

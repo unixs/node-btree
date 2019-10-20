@@ -1,46 +1,55 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <setjmp.h>
 #include <node_api.h>
-#include <glib.h>
 
 #include "include/common.h"
 #include "include/glib_local.h"
 
+/**
+ * Native iterator state
+ */
 typedef enum ITERATOR_STATE {
   ITERATOR_INIT,
   ITERATOR_LOOP,
   ITERATOR_END
 } IteratorState_t;
 
+/**
+ * Context for native bTree
+ */
 typedef struct {
   napi_env env;
   napi_ref comparator;
   GTree *nativeTree;
 } BTree_t;
 
-typedef struct {
-  napi_env env;
-  napi_ref ref;
-} TreeNode_t;
-
+/**
+ * Context for native iterations with additional data
+ */
 typedef struct {
   BTree_t *bTree;
   napi_value esCallback;
-} BTreeTraverseData_t;
+} TraverseData_t;
 
+/**
+ * ES iterator native context
+ */
 typedef struct {
   BTree_t *bTree;
   IteratorState_t state;
   GTreeNode_t currentNode;
   napi_value value;
-} BTreeIteratorContext_t;
+} IteratorContext_t;
 
-typedef void (* iteratorResultCallback) (BTreeIteratorContext_t *ctxt);
+/**
+ * Native callback for generic operations
+ */
+typedef void (*iteratorResultCallback)(IteratorContext_t *ctxt);
 
 static napi_ref constructor;
 
-static inline void iteratorResultDefaultCb(BTreeIteratorContext_t *ctxt) {
+/**
+ * Callback for iterator wich return key with value
+ */
+static inline void iteratorResultDefaultCb(IteratorContext_t *ctxt) {
   napi_env env = ctxt->bTree->env;
   napi_ref esValueRef;
   napi_value esValue, tmp;
@@ -63,7 +72,10 @@ static inline void iteratorResultDefaultCb(BTreeIteratorContext_t *ctxt) {
     napi_set_element(env, ctxt->value, 1, tmp));
 }
 
-static inline void iteratorResultKeyCb(BTreeIteratorContext_t *ctxt) {
+/**
+ * Callback for iterator wich return key only
+ */
+static inline void iteratorResultKeyCb(IteratorContext_t *ctxt) {
   napi_env env = ctxt->bTree->env;
   napi_ref esValueRef;
   napi_value esValue;
@@ -76,7 +88,10 @@ static inline void iteratorResultKeyCb(BTreeIteratorContext_t *ctxt) {
     napi_get_named_property(env, esValue, "key", &ctxt->value));
 }
 
-static inline void iteratorResultValueCb(BTreeIteratorContext_t *ctxt) {
+/**
+ * Callback for iterator wich return value only
+ */
+static inline void iteratorResultValueCb(IteratorContext_t *ctxt) {
   napi_env env = ctxt->bTree->env;
   napi_ref esValueRef;
   napi_value esValue;
@@ -100,10 +115,16 @@ static inline void unrefBTreeNode(gpointer key, gpointer value, gpointer data) {
     napi_delete_reference(bTree->env, objRef));
 }
 
+/**
+ * Unref all bTree nodes for GC access. Wrapper with typechecking.
+ */
 static inline void unrefBTreeNodeTyped(napi_ref key, BTree_t *bTree) {
   unrefBTreeNode((gpointer) key, NULL, (gpointer) bTree);
 }
 
+/**
+ * Unref all bTree nodes for GC access.
+ */
 static inline gboolean removeTreeNode(gpointer key, gpointer val, gpointer data) {
   napi_ref keyRef = (napi_ref) key;
   BTree_t *bTree = (BTree_t *) data;
@@ -117,6 +138,9 @@ static inline gboolean removeTreeNode(gpointer key, gpointer val, gpointer data)
   return FALSE;
 }
 
+/**
+ * Unref all bTree nodes for GC access. Wrapper with typechecking.
+ */
 static inline gboolean removeTreeNodeTyped(napi_ref key, BTree_t *bTree) {
   return removeTreeNode((gpointer) key, NULL, (gpointer) bTree);
 }
@@ -141,10 +165,16 @@ static void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hi
   g_free((gpointer) bTree);
 }
 
+/**
+ * Free iterator native data
+ */
 static void freeIterator(napi_env env, void *finalize_data, void *finalize_hint) {
   g_free((gpointer) finalize_data);
 }
 
+/**
+ * Native comparator function
+ */
 static inline gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
   int64_t compareResult = 0;
 
@@ -183,6 +213,9 @@ static inline gint nativeComparator(gconstpointer a, gconstpointer b, gpointer b
   return (gint) compareResult;
 }
 
+/**
+ * ES callback. Return bTree height
+ */
 static napi_value esHeight(napi_env env, napi_callback_info cbInfo) {
   napi_value esHeight;
   napi_value esThis;
@@ -206,6 +239,9 @@ static napi_value esHeight(napi_env env, napi_callback_info cbInfo) {
   return esHeight;
 }
 
+/**
+ * ES callback. Return bTree size (nodes count).
+ */
 static napi_value esSize(napi_env env, napi_callback_info cbInfo) {
   napi_value esSize;
   napi_value esThis;
@@ -229,6 +265,9 @@ static napi_value esSize(napi_env env, napi_callback_info cbInfo) {
   return esSize;
 }
 
+/**
+ * ES callback. Delete node from bTree by key
+ */
 static napi_value esDelete(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, result, searchBox;
   napi_ref searchBoxRef;
@@ -278,6 +317,9 @@ static napi_value esDelete(napi_env env, napi_callback_info cbInfo) {
   return result;
 }
 
+/**
+ * ES callback. Add element to bTree.
+ */
 static napi_value esSet(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis;
   BTree_t *bTree;
@@ -317,11 +359,14 @@ static napi_value esSet(napi_env env, napi_callback_info cbInfo) {
     napi_create_reference(env, box, 1, &boxRef));
 
   // Add es plain object to native bTree
-  g_tree_insert(bTree->nativeTree, boxRef, boxRef);
+  g_tree_replace(bTree->nativeTree, boxRef, boxRef);
 
   return esThis;
 }
 
+/**
+ * ES callback. Delete all nodes from bTree
+ */
 static napi_value esClear(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis;
   BTree_t *bTree;
@@ -342,6 +387,9 @@ static napi_value esClear(napi_env env, napi_callback_info cbInfo) {
   return result;
 }
 
+/**
+ * ES callback. Check key in bTree.
+ */
 static napi_value esHas(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis;
   napi_ref boxRef;
@@ -389,6 +437,9 @@ static napi_value esHas(napi_env env, napi_callback_info cbInfo) {
   return result;
 }
 
+/**
+ * ES callback. Return value from bTree by key
+ */
 static napi_value esGet(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis;
   napi_value result;
@@ -440,9 +491,12 @@ static napi_value esGet(napi_env env, napi_callback_info cbInfo) {
   return result;
 }
 
+/**
+ * ES callback. Iterator next() method.
+ */
 static napi_value esIteratorNext(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis;
-  BTreeIteratorContext_t *itCtxt;
+  IteratorContext_t *itCtxt;
   iteratorResultCallback resultCb;
 
   // Get es this for current btree
@@ -500,6 +554,9 @@ static napi_value esIteratorNext(napi_env env, napi_callback_info cbInfo) {
   return esIteratorResult;
 }
 
+/**
+ * ES callback. bTree generator function.
+ */
 static napi_value esGenerator(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, esIterator;
   BTree_t *bTree;
@@ -525,7 +582,7 @@ static napi_value esGenerator(napi_env env, napi_callback_info cbInfo) {
     napi_set_named_property(env, esIterator, "next", nextFunction));
 
   // Alloc memory for native iterator context
-  BTreeIteratorContext_t *itCtxt = g_new(BTreeIteratorContext_t, 1);
+  IteratorContext_t *itCtxt = g_new(IteratorContext_t, 1);
   itCtxt->bTree = bTree;
   itCtxt->state = ITERATOR_INIT;
 
@@ -537,10 +594,13 @@ static napi_value esGenerator(napi_env env, napi_callback_info cbInfo) {
   return esIterator;
 }
 
+/**
+ * Native forEach() callback
+ */
 static gboolean nativeBTreeTraverse(gpointer key, gpointer val, gpointer data) {
   napi_ref objectRef = (napi_ref) val;
   napi_value esObject, esKey, esValue, esNull;
-  BTreeTraverseData_t *tData = (BTreeTraverseData_t *) data;
+  TraverseData_t *tData = (TraverseData_t *) data;
   napi_env env = tData->bTree->env;
 
   NAPI_CALL(env,
@@ -562,6 +622,9 @@ static gboolean nativeBTreeTraverse(gpointer key, gpointer val, gpointer data) {
   return FALSE;
 }
 
+/**
+ * ES callback. es forEach() method
+ */
 static napi_value esForeach(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, undefined;
   BTree_t *bTree;
@@ -582,7 +645,7 @@ static napi_value esForeach(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env,
     napi_unwrap(env, esThis, (void **) &bTree));
 
-  BTreeTraverseData_t traverseData = {
+  TraverseData_t traverseData = {
     bTree,
     argv[0] // es Callback
   };
@@ -595,6 +658,9 @@ static napi_value esForeach(napi_env env, napi_callback_info cbInfo) {
   return undefined;
 }
 
+/**
+ * ES callback. Constructor
+ */
 static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
   napi_value esBtree;
   napi_ref ref;
@@ -633,6 +699,9 @@ static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
   return esBtree;
 }
 
+/**
+ * Module initialization callback
+ */
 static napi_value init(napi_env env, napi_value exports) {
   napi_value esBTreeClass, symbolIterator;
 
