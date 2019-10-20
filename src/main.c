@@ -96,8 +96,6 @@ static void freeNativeBTreeNode(gpointer key, gpointer value, gpointer data) {
   BTree_t *bTree = (BTree_t *) data;
 
   NAPI_CALL(bTree->env, napi_delete_reference(bTree->env, objRef));
-
-  return FALSE;
 }
 
 /**
@@ -107,7 +105,7 @@ void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
   BTree_t *bTree = (BTree_t *) finalize_data;
 
   // Remove all nodes
-  g_tree_foreach(bTree->nativeTree, freeNativeBTreeNode, (gpointer) bTree);
+  g_tree_foreach(bTree->nativeTree, (gpointer) freeNativeBTreeNode, (gpointer) bTree);
 
   // Destroy native bTree
   g_tree_destroy(bTree->nativeTree);
@@ -155,7 +153,7 @@ napi_value esBTreeHeight(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
 
   // Native call to glib tree
   gint nativeHeight = g_tree_height(bTree->nativeTree);
@@ -175,7 +173,7 @@ napi_value esBTreeSize(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
 
   // Native call to glib tree
   gint nativeSize = g_tree_nnodes(bTree->nativeTree);
@@ -202,7 +200,7 @@ napi_value esBTreeDelete(napi_env env, napi_callback_info cbInfo) {
   }
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
 
   NAPI_CALL(env, napi_create_object(env, &box));
   NAPI_CALL(env, napi_set_named_property(env, box, "key", argv[0]));
@@ -245,7 +243,7 @@ napi_value esBTreeSet(napi_env env, napi_callback_info cbInfo) {
   value = argv[1];
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
 
   NAPI_CALL(env, napi_create_object(env, &box));
   NAPI_CALL(env, napi_set_named_property(env, box, "key", key));
@@ -275,10 +273,11 @@ napi_value esClear(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, NULL));
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
 
   BTreeTraverseData_t traverseData = {
-    bTree
+    bTree,
+    NULL
   };
 
   g_tree_foreach(bTree->nativeTree, _removeTreeNode, &traverseData);
@@ -306,7 +305,7 @@ napi_value esHas(napi_env env, napi_callback_info cbInfo) {
   }
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
 
   NAPI_CALL(env, napi_create_object(env, &box));
   NAPI_CALL(env, napi_set_named_property(env, box, "key", argv[0]));
@@ -341,7 +340,7 @@ napi_value esBTreeGet(napi_env env, napi_callback_info cbInfo) {
   }
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
 
   napi_value key = argv[0];
   napi_value lookupBox;
@@ -352,7 +351,7 @@ napi_value esBTreeGet(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_create_reference(env, lookupBox, 0, &lookupRef));
 
   // Native call to glib tree
-  napi_ref lookupResult = g_tree_lookup(bTree->nativeTree, lookupRef);
+  napi_ref lookupResult = (napi_ref) g_tree_lookup(bTree->nativeTree, lookupRef);
 
   if (lookupResult == NULL) {
     NAPI_CALL(env, napi_get_undefined(env, &result));
@@ -371,10 +370,10 @@ napi_value esIteratorNext(napi_env env, napi_callback_info cbInfo) {
   iteratorResultCallback resultCb;
 
   // Get es this for current btree
-  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, &resultCb));
+  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, (void **) &resultCb));
 
   // Extract native pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &itCtxt));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &itCtxt));
 
   switch (itCtxt->state) {
     case ITERATOR_INIT:
@@ -424,7 +423,7 @@ napi_value esBTreeGenerator(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, &data));
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
 
   // Create es Iterator
   NAPI_CALL(env, napi_create_object(env, &esIterator));
@@ -440,8 +439,8 @@ napi_value esBTreeGenerator(napi_env env, napi_callback_info cbInfo) {
   itCtxt->bTree = bTree;
   itCtxt->state = ITERATOR_INIT;
 
-  napi_value ref;
-  NAPI_CALL(env, napi_wrap(env, esIterator, itCtxt, freeIterator, NULL, &ref));
+  napi_ref ref;
+  NAPI_CALL(env, napi_wrap(env, esIterator, (void *) itCtxt, freeIterator, NULL, &ref));
 
   return esIterator;
 }
@@ -479,7 +478,7 @@ napi_value esBTreeForeach(napi_env env, napi_callback_info cbInfo) {
   }
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, &bTree));
+  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
 
   BTreeTraverseData_t traverseData = {
     bTree,
@@ -521,21 +520,6 @@ static napi_value esBTreeConstructor(napi_env env, napi_callback_info cbInfo) {
 
   // Wrap native data in ES variable for native access again
   NAPI_CALL(env, napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, &ref)); // NOTE: Pass
-
-  napi_property_descriptor comparator = {
-    "comparator",
-    NULL,
-
-    NULL,
-    NULL,
-    NULL,
-    bTree->comparator,
-
-    napi_default,
-    NULL
-  };
-
-  NAPI_CALL(env, napi_define_properties(env, esBtree, 1, &comparator));
 
   return esBtree;
 }
@@ -617,7 +601,7 @@ napi_value init(napi_env env, napi_value exports) {
       NULL,
 
       napi_default,
-      iteratorResultDefaultCb
+      (void *) iteratorResultDefaultCb
     },
     {
       "entries",
@@ -629,7 +613,7 @@ napi_value init(napi_env env, napi_value exports) {
       NULL,
 
       napi_default,
-      iteratorResultDefaultCb
+      (void *) iteratorResultDefaultCb
     },
     {
       "values",
@@ -641,7 +625,7 @@ napi_value init(napi_env env, napi_value exports) {
       NULL,
 
       napi_default,
-      iteratorResultValueCb
+      (void *) iteratorResultValueCb
     },
     {
       "keys",
@@ -653,7 +637,7 @@ napi_value init(napi_env env, napi_value exports) {
       NULL,
 
       napi_default,
-      iteratorResultKeyCb
+      (void *) iteratorResultKeyCb
     },
     {
       "forEach",

@@ -11,7 +11,6 @@
                                   ? "empty error message"                      \
                                   : error_info->error_message;                 \
         napi_throw_error((env), NULL, message);                                \
-        return NULL;                                                           \
       }                                                                        \
     }                                                                          \
   } while (0)
@@ -22,4 +21,4 @@
   NAPI_CALL(env, napi_get_global(env, &global));                               \
   NAPI_CALL(env, napi_get_named_property(env, global, "Symbol", &Symbol));     \
   NAPI_CALL(env, napi_get_named_property(env, Symbol, name, &napiVar));  \
-}                                                                              \
+}
