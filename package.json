@@ -1,6 +1,6 @@
 {
   "name": "node-btree",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Node.js native N-API mixin implementation",
   "main": "./lib/index",
   "scripts": {
