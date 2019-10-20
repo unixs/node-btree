@@ -1,9 +1,8 @@
 {
   "name": "node-btree",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Node.js native N-API mixin implementation",
   "main": "./lib/index",
-  "types": "./typings/btree.d.ts",
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
     "test": "jest -c test/config/jest.config.js"
