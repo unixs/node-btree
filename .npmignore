@@ -1,0 +1,6 @@
+.vscode/
+test/
+.travis.yml
+.editorconfig
+.eslintrc.yml
+.gitignore
