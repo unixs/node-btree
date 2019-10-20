@@ -1,4 +1,4 @@
-import { BTree } from "../lib";
+const { BTree } = require("../lib");
 
 function comparator(a, b) {
   if (a > b) {

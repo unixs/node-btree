@@ -11,7 +11,7 @@
       "program": "/usr/bin/node",
       "args": [
         "--expose-gc",
-        "test/native.js"
+        "tmp/native_debug.js"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
