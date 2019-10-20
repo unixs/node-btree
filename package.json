@@ -25,6 +25,14 @@
     "url": "https://github.com/unixs/node-btree/issues"
   },
   "homepage": "https://github.com/unixs/node-btree#readme",
+  "keywords": [
+    "n-api",
+    "btree",
+    "b-tree",
+    "map",
+    "native",
+    "glib"
+  ],
   "dependencies": {
     "node-pre-gyp": "~0.13.0"
   },

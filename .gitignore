@@ -54,4 +54,4 @@ dkms.conf
 node_modules/
 tmp/
 build/
-lib/
+lib/binding
