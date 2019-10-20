@@ -1,7 +1,7 @@
 {
   "name": "node-btree",
   "version": "0.2.1",
-  "description": "Node.js native N-API mixin implementation",
+  "description": "Native binary tree implementation baseb on GLib Balanced Binary Trees (GTree) for Node.js",
   "main": "./lib/index",
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
