@@ -107,7 +107,7 @@ void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
   // Remove all nodes
   g_tree_foreach(bTree->nativeTree, (gpointer) freeNativeBTreeNode, (gpointer) bTree);
 
-  // Destroy native bTree
+  // Destroy native bTree & release memory
   g_tree_destroy(bTree->nativeTree);
 
   // Release BTree_t struct memory
@@ -115,7 +115,7 @@ void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
 }
 
 void freeIterator(napi_env env, void *finalize_data, void *finalize_hint) {
-  printf("Free iterator.\n");
+  g_free((gpointer) finalize_data);
 }
 
 static inline gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
@@ -256,7 +256,7 @@ napi_value esBTreeSet(napi_env env, napi_callback_info cbInfo) {
 
   // size_t refCnt;
   // NAPI_CALL(env, napi_reference_ref(env, boxRef, NULL));
-  NAPI_CALL(env, napi_create_reference(env, box, 1, &boxRef)); // NOTE: Pass
+  NAPI_CALL(env, napi_create_reference(env, box, 1, &boxRef));
 
   // Native call to glib tree
   bTree->env = env;
@@ -420,27 +420,33 @@ napi_value esBTreeGenerator(napi_env env, napi_callback_info cbInfo) {
   void *data;
 
   // Get es this for current btree
-  NAPI_CALL(env, napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, &data));
+  NAPI_CALL(env,
+    napi_get_cb_info(env, cbInfo, NULL, NULL, &esThis, &data));
 
   // Extract native BTree pointer
-  NAPI_CALL(env, napi_unwrap(env, esThis, (void **) &bTree));
+  NAPI_CALL(env,
+    napi_unwrap(env, esThis, (void **) &bTree));
 
   // Create es Iterator
-  NAPI_CALL(env, napi_create_object(env, &esIterator));
+  NAPI_CALL(env,
+    napi_create_object(env, &esIterator));
 
+  // Create next() iterator method
   napi_value nextFunction;
   NAPI_CALL(env,
     napi_create_function(env, "next", NAPI_AUTO_LENGTH, esIteratorNext, data, &nextFunction));
-
   NAPI_CALL(env,
     napi_set_named_property(env, esIterator, "next", nextFunction));
 
-  BTreeIteratorContext_t *itCtxt = (BTreeIteratorContext_t *) malloc(sizeof(BTreeIteratorContext_t));
+  // Alloc memory for native iterator context
+  BTreeIteratorContext_t *itCtxt = g_new(BTreeIteratorContext_t, 1);
   itCtxt->bTree = bTree;
   itCtxt->state = ITERATOR_INIT;
 
+  // Attach native data (context) to es value (iterator)
   napi_ref ref;
-  NAPI_CALL(env, napi_wrap(env, esIterator, (void *) itCtxt, freeIterator, NULL, &ref));
+  NAPI_CALL(env,
+    napi_wrap(env, esIterator, (void *) itCtxt, freeIterator, NULL, &ref));
 
   return esIterator;
 }
@@ -501,7 +507,7 @@ static napi_value esBTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &esBtree, NULL));
 
   // Allocate memory for usre data wich recived in native comparator
-  BTree_t *bTree = (BTree_t *) malloc(sizeof(BTree_t)); // NOTE: Pass
+  BTree_t *bTree = g_new(BTree_t, 1);
 
   // Initialize native BTree with native comparator & additional user data
   GTree *nativeTree = g_tree_new_with_data(nativeComparator, bTree);
@@ -519,7 +525,7 @@ static napi_value esBTreeConstructor(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, napi_create_reference(env, argv[0], 0, &bTree->comparator));
 
   // Wrap native data in ES variable for native access again
-  NAPI_CALL(env, napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, &ref)); // NOTE: Pass
+  NAPI_CALL(env, napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, &ref));
 
   return esBtree;
 }
@@ -681,7 +687,7 @@ napi_value init(napi_env env, napi_value exports) {
     napi_define_class(env, "BTree", NAPI_AUTO_LENGTH, esBTreeConstructor, NULL, (sizeof(esBTreeProps) / sizeof(esBTreeProps[0])), esBTreeProps, &esBTreeClass));
 
   NAPI_CALL(env,
-    napi_create_reference(env, esBTreeClass, 1, &constructor)); // NOTE: Pass
+    napi_create_reference(env, esBTreeClass, 1, &constructor));
 
   napi_property_descriptor props[] = {{
     "BTree",
