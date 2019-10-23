@@ -4,3 +4,6 @@ test/
 .editorconfig
 .eslintrc.yml
 .gitignore
+build/
+tmp/
+lib/binding/

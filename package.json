@@ -1,6 +1,6 @@
 {
   "name": "node-btree",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Native binary tree implementation baseb on GLib Balanced Binary Trees (GTree) for Node.js",
   "main": "./lib/index",
   "scripts": {
@@ -32,6 +32,9 @@
     "native",
     "glib"
   ],
+  "engines": {
+    "node": ">=10"
+  },
   "dependencies": {
     "node-pre-gyp": "~0.13.0"
   },
