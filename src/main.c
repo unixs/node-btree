@@ -16,26 +16,40 @@ typedef enum ITERATOR_STATE {
  * Context for native bTree
  */
 typedef struct {
+  // Node runtime environment
   napi_env env;
+  //  ES comparator passed form constructor
   napi_ref comparator;
+  // GLib Binary Tree
   GTree *nativeTree;
 } BTree_t;
 
 /**
- * Context for native iterations with additional data
+ * bTree Node
+ *
+ * Save pointer to self tree & kay-value pair ES Object
  */
 typedef struct {
+  // Ref to ES value
+  napi_ref esKeyValue;
+  // Pointer to self tree
   BTree_t *bTree;
-  napi_value esCallback;
-} TraverseData_t;
+} BTreeNode_t;
+
+// Type alias for tree node
+typedef BTreeNode_t* BTreeNode;
 
 /**
  * ES iterator native context
  */
 typedef struct {
+  // Pointer to self tree
   BTree_t *bTree;
+  // Saved iterator state
   IteratorState_t state;
+  // Internal GLib BTree node
   GTreeNode_t currentNode;
+  // ES value for return
   napi_value value;
 } IteratorContext_t;
 
@@ -44,6 +58,7 @@ typedef struct {
  */
 typedef void (*iteratorResultCallback)(IteratorContext_t *ctxt);
 
+// Cached ES constructor
 static napi_ref constructor;
 
 /**
@@ -51,12 +66,12 @@ static napi_ref constructor;
  */
 static inline void iteratorResultDefaultCb(IteratorContext_t *ctxt) {
   napi_env env = ctxt->bTree->env;
-  napi_ref esValueRef;
   napi_value esValue, tmp;
 
-  esValueRef = (napi_ref) local_g_tree_node_value(ctxt->currentNode);
+  BTreeNode node = (BTreeNode) local_g_tree_node_value(ctxt->currentNode);
+
   NAPI_CALL(env,
-    napi_get_reference_value(env, esValueRef, &esValue));
+    napi_get_reference_value(env, node->esKeyValue, &esValue));
 
   NAPI_CALL(env,
     napi_create_array_with_length(env, 2, &ctxt->value));
@@ -77,12 +92,12 @@ static inline void iteratorResultDefaultCb(IteratorContext_t *ctxt) {
  */
 static inline void iteratorResultKeyCb(IteratorContext_t *ctxt) {
   napi_env env = ctxt->bTree->env;
-  napi_ref esValueRef;
   napi_value esValue;
 
-  esValueRef = (napi_ref) local_g_tree_node_value(ctxt->currentNode);
+  BTreeNode node = (BTreeNode) local_g_tree_node_value(ctxt->currentNode);
+
   NAPI_CALL(env,
-    napi_get_reference_value(env, esValueRef, &esValue));
+    napi_get_reference_value(env, node->esKeyValue, &esValue));
 
   NAPI_CALL(env,
     napi_get_named_property(env, esValue, "key", &ctxt->value));
@@ -93,47 +108,25 @@ static inline void iteratorResultKeyCb(IteratorContext_t *ctxt) {
  */
 static inline void iteratorResultValueCb(IteratorContext_t *ctxt) {
   napi_env env = ctxt->bTree->env;
-  napi_ref esValueRef;
   napi_value esValue;
 
-  esValueRef = (napi_ref) local_g_tree_node_value(ctxt->currentNode);
+  BTreeNode node = (BTreeNode) local_g_tree_node_value(ctxt->currentNode);
+
   NAPI_CALL(env,
-    napi_get_reference_value(env, esValueRef, &esValue));
+    napi_get_reference_value(env, node->esKeyValue, &esValue));
 
   NAPI_CALL(env,
     napi_get_named_property(env, esValue, "value", &ctxt->value));
 }
 
 /**
- * Unref all bTree nodes for GC access
- */
-static inline void unrefBTreeNode(gpointer key, gpointer value, gpointer data) {
-  napi_ref objRef = (napi_ref) key;
-  BTree_t *bTree = (BTree_t *) data;
-
-  NAPI_CALL(bTree->env,
-    napi_delete_reference(bTree->env, objRef));
-}
-
-/**
- * Unref all bTree nodes for GC access. Wrapper with typechecking.
- */
-static inline void unrefBTreeNodeTyped(napi_ref key, BTree_t *bTree) {
-  unrefBTreeNode((gpointer) key, NULL, (gpointer) bTree);
-}
-
-/**
  * Unref all bTree nodes for GC access.
  */
 static inline gboolean removeTreeNode(gpointer key, gpointer val, gpointer data) {
-  napi_ref keyRef = (napi_ref) key;
   BTree_t *bTree = (BTree_t *) data;
 
   // Remove es value from native bTree
-  g_tree_remove(bTree->nativeTree, keyRef);
-
-  // Unref es value for GC access
-  unrefBTreeNodeTyped(keyRef, bTree);
+  g_tree_remove(bTree->nativeTree, (BTreeNode) key);
 
   return FALSE;
 }
@@ -141,18 +134,15 @@ static inline gboolean removeTreeNode(gpointer key, gpointer val, gpointer data)
 /**
  * Unref all bTree nodes for GC access. Wrapper with typechecking.
  */
-static inline gboolean removeTreeNodeTyped(napi_ref key, BTree_t *bTree) {
-  return removeTreeNode((gpointer) key, NULL, (gpointer) bTree);
-}
+//static inline gboolean removeTreeNodeTyped(napi_ref key, BTree_t *bTree) {
+//  return removeTreeNode((gpointer) key, NULL, (gpointer) bTree);
+//}
 
 /**
  * Free allocated GTree & unref comparator for GC access
  */
 static void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
   BTree_t *bTree = (BTree_t *) finalize_data;
-
-  // Unref all nodes for GC access
-  g_tree_foreach(bTree->nativeTree, (gpointer) unrefBTreeNode, (gpointer) bTree);
 
   // Unref comparator function for GC access
   NAPI_CALL(env,
@@ -173,23 +163,30 @@ static void freeIterator(napi_env env, void *finalize_data, void *finalize_hint)
 }
 
 /**
+ * Free tree value
+ */
+static void freeTreeValue(gpointer treeValue) {
+  FREE_NODE(treeValue);
+}
+
+/**
  * Native comparator function
  */
 static inline gint nativeComparator(gconstpointer a, gconstpointer b, gpointer bTree) {
   int64_t compareResult = 0;
 
   BTree_t *bTreeWrap = (BTree_t *) bTree;
-  napi_env env = bTreeWrap->env;
+  BTreeNode nodeA = (BTreeNode) a;
+  BTreeNode nodeB = (BTreeNode) b;
 
-  napi_ref refA = (napi_ref) a;
-  napi_ref refB = (napi_ref) b;
+  napi_env env = bTreeWrap->env;
   napi_value boxA, boxB, keyA, keyB, esNull, esResult, comparator;
 
   NAPI_CALL(env,
-    napi_get_reference_value(env, refA, &boxA));
+    napi_get_reference_value(env, nodeA->esKeyValue, &boxA));
 
   NAPI_CALL(env,
-    napi_get_reference_value(env, refB, &boxB));
+    napi_get_reference_value(env, nodeB->esKeyValue, &boxB));
 
   NAPI_CALL(env,
     napi_get_named_property(env, boxA, "key", &keyA));
@@ -299,17 +296,12 @@ static napi_value esDelete(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env,
     napi_create_reference(env, searchBox, 0, &searchBoxRef));
 
-  gboolean found = FALSE;
+  BTreeNode_t searchNode = {
+    searchBoxRef,
+    NULL
+  };
 
-  // Find es value in bTree
-  napi_ref targetRef = g_tree_lookup(bTree->nativeTree, searchBoxRef);
-
-  if (targetRef != NULL) {
-    found = TRUE;
-
-    // Remove bTree node
-    removeTreeNodeTyped(targetRef, bTree);
-  }
+  gboolean found = g_tree_remove(bTree->nativeTree, &searchNode);
 
   NAPI_CALL(env,
     napi_get_boolean(env, found, &result));
@@ -358,8 +350,12 @@ static napi_value esSet(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env,
     napi_create_reference(env, box, 1, &boxRef));
 
+  // Alloc new tree node
+  BTreeNode node;
+  NEW_NODE(node, bTree, boxRef);
+
   // Add es plain object to native bTree
-  g_tree_replace(bTree->nativeTree, boxRef, boxRef);
+  g_tree_replace(bTree->nativeTree, node, node);
 
   return esThis;
 }
@@ -421,7 +417,12 @@ static napi_value esHas(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env,
     napi_create_reference(env, box, 0, &boxRef));
 
-  gpointer found = g_tree_lookup(bTree->nativeTree, boxRef);
+  BTreeNode_t searchNode = {
+    boxRef,
+    NULL
+  };
+
+  gpointer found = g_tree_lookup(bTree->nativeTree, &searchNode);
 
   napi_value result;
 
@@ -473,8 +474,13 @@ static napi_value esGet(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env,
     napi_create_reference(env, lookupBox, 0, &lookupRef));
 
+  BTreeNode_t lookupNode = {
+    lookupRef,
+    NULL
+  };
+
   // Native call to glib tree
-  napi_ref lookupResult = (napi_ref) g_tree_lookup(bTree->nativeTree, lookupRef);
+  BTreeNode lookupResult = (BTreeNode) g_tree_lookup(bTree->nativeTree, &lookupNode);
 
   if (lookupResult == NULL) {
     NAPI_CALL(env,
@@ -482,7 +488,7 @@ static napi_value esGet(napi_env env, napi_callback_info cbInfo) {
   }
   else {
     NAPI_CALL(env,
-      napi_get_reference_value(env, lookupResult, &result));
+      napi_get_reference_value(env, lookupResult->esKeyValue, &result));
 
     NAPI_CALL(env,
       napi_get_named_property(env, result, "value", &result));
@@ -598,13 +604,13 @@ static napi_value esGenerator(napi_env env, napi_callback_info cbInfo) {
  * Native forEach() callback
  */
 static gboolean nativeBTreeTraverse(gpointer key, gpointer val, gpointer data) {
-  napi_ref objectRef = (napi_ref) val;
+  BTreeNode node = (BTreeNode) val;
+  napi_value callback = (napi_value) data;
+  napi_env env = node->bTree->env;
   napi_value esObject, esKey, esValue, esNull;
-  TraverseData_t *tData = (TraverseData_t *) data;
-  napi_env env = tData->bTree->env;
 
   NAPI_CALL(env,
-    napi_get_reference_value(env, objectRef, &esObject));
+    napi_get_reference_value(env, node->esKeyValue, &esObject));
 
   NAPI_CALL(env,
     napi_get_named_property(env, esObject, "key", &esKey));
@@ -617,7 +623,7 @@ static gboolean nativeBTreeTraverse(gpointer key, gpointer val, gpointer data) {
     napi_get_null(env, &esNull));
 
   NAPI_CALL(env,
-    napi_call_function(env, esNull, tData->esCallback, 2, argv, NULL));
+    napi_call_function(env, esNull, callback, 2, argv, NULL));
 
   return FALSE;
 }
@@ -645,12 +651,7 @@ static napi_value esForeach(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env,
     napi_unwrap(env, esThis, (void **) &bTree));
 
-  TraverseData_t traverseData = {
-    bTree,
-    argv[0] // es Callback
-  };
-
-  g_tree_foreach(bTree->nativeTree, nativeBTreeTraverse, &traverseData);
+  g_tree_foreach(bTree->nativeTree, nativeBTreeTraverse, argv[0]);
 
   NAPI_CALL(env,
     napi_get_undefined(env, &undefined));
@@ -676,7 +677,8 @@ static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
   BTree_t *bTree = g_new(BTree_t, 1);
 
   // Initialize native BTree with native comparator & additional user data
-  GTree *nativeTree = g_tree_new_with_data(nativeComparator, bTree);
+  // Key & Value is same pointer (ES object). Need free one of key or value.
+  GTree *nativeTree = g_tree_new_full(nativeComparator, bTree, NULL, freeTreeValue);
 
   // Check type of first argument. Must be function
   napi_valuetype comparatorType;

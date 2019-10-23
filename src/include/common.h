@@ -15,10 +15,30 @@
     }                                                                          \
   } while (0)
 
+/**
+ * Get globas ES Symbol
+ */
 #define NAPI_GLOBAL_SYM(env, name, napiVar)                                    \
 {                                                                              \
   napi_value global, Symbol;                                                   \
   NAPI_CALL(env, napi_get_global(env, &global));                               \
   NAPI_CALL(env, napi_get_named_property(env, global, "Symbol", &Symbol));     \
-  NAPI_CALL(env, napi_get_named_property(env, Symbol, name, &napiVar));  \
+  NAPI_CALL(env, napi_get_named_property(env, Symbol, name, &napiVar));        \
 }
+
+/**
+ * Allocate memory for & initialize new node
+ */
+#define NEW_NODE(ptr, bTree, ref)                                              \
+ptr = g_new(BTreeNode_t, 1);                                                   \
+ptr->bTree = bTree;                                                            \
+ptr->esKeyValue = ref;                                                         \
+
+/**
+ * Free node
+ */
+#define FREE_NODE(node)                                                        \
+NAPI_CALL(((BTreeNode) node)->bTree->env,                                      \
+  napi_delete_reference(((BTreeNode) node)->bTree->env,                        \
+    ((BTreeNode) node)->esKeyValue));                                          \
+g_free((gpointer) node);
