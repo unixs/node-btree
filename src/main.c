@@ -1,7 +1,10 @@
 #include <node_api.h>
+#include <glib.h>
 
 #include "include/common.h"
 #include "include/glib_local.h"
+
+static char *msgTooFewArguments = "Too few arguments.";
 
 /**
  * Native iterator state
@@ -272,7 +275,9 @@ static napi_value esDelete(napi_env env, napi_callback_info cbInfo) {
 
   if (argc < 1) {
     NAPI_CALL(env,
-      napi_throw_error(env, NULL, "Too few arguments."));
+      napi_throw_error(env, NULL, msgTooFewArguments));
+
+      return NULL;
   }
 
   // Extract native BTree pointer
@@ -317,7 +322,9 @@ static napi_value esSet(napi_env env, napi_callback_info cbInfo) {
 
   if (argc < 2) {
     NAPI_CALL(env,
-      napi_throw_error(env, NULL, "Expected two arguments."));
+      napi_throw_error(env, NULL, msgTooFewArguments));
+
+      return NULL;
   }
 
   key = argv[0];
@@ -394,7 +401,9 @@ static napi_value esHas(napi_env env, napi_callback_info cbInfo) {
 
   if (argc < 1) {
     NAPI_CALL(env,
-      napi_throw_error(env, NULL, "Too few arguments."));
+      napi_throw_error(env, NULL, msgTooFewArguments));
+
+      return NULL;
   }
 
   // Extract native BTree pointer
@@ -447,7 +456,9 @@ static napi_value esGet(napi_env env, napi_callback_info cbInfo) {
 
   if (argc < 1) {
     NAPI_CALL(env,
-      napi_throw_error(env, "10", "Expected one argument."));
+      napi_throw_error(env, NULL, msgTooFewArguments));
+
+      return NULL;
   }
 
   // Extract native BTree pointer
@@ -473,7 +484,8 @@ static napi_value esGet(napi_env env, napi_callback_info cbInfo) {
   };
 
   // Native call to glib tree
-  BTreeNode lookupResult = (BTreeNode) g_tree_lookup(bTree->nativeTree, &lookupNode);
+  BTreeNode lookupResult =
+    (BTreeNode) g_tree_lookup(bTree->nativeTree, &lookupNode);
 
   if (lookupResult == NULL) {
     NAPI_CALL(env,
@@ -637,7 +649,9 @@ static napi_value esForeach(napi_env env, napi_callback_info cbInfo) {
 
   if (argc < 1) {
     NAPI_CALL(env,
-      napi_throw_error(env, NULL, "Too few arguments."));
+      napi_throw_error(env, NULL, msgTooFewArguments));
+
+      return NULL;
   }
 
   // Extract native BTree pointer
@@ -680,7 +694,9 @@ static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
 
   if (comparatorType != napi_function) {
     NAPI_CALL(env,
-      napi_throw_error(env, "10", "First arg must be comparator qsort() like function"));
+      napi_throw_error(env, NULL, "First arg must be comparator qsort() like function"));
+
+      return NULL;
   }
 
   // Fill user data

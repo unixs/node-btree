@@ -11,6 +11,7 @@
                                   ? "empty error message"                      \
                                   : error_info->error_message;                 \
         napi_throw_error((env), NULL, message);                                \
+        return (napi_value) NULL;                                              \
       }                                                                        \
     }                                                                          \
   } while (0)

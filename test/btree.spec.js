@@ -1,5 +1,7 @@
 const { BTree } = require("../lib");
 
+const MSG_TOO_FEW_ARGUMENTS = "Too few arguments.";
+
 function comparator(a, b) {
   if (a > b) {
     return 1;
@@ -60,6 +62,17 @@ describe("Base functionality", () => {
       const btree = initBtree();
 
       expect(btree.size).toBe(3);
+    });
+
+    it('get method should throw exception without args', () => {
+      const btree = initBtree();
+
+      try {
+        btree.get();
+      }
+      catch (e) {
+        expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
+      }
     });
 
     it("Check get method (number => string)", () => {
