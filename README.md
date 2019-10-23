@@ -3,6 +3,9 @@
 [![Build Status](https://travis-ci.org/unixs/node-btree.svg?branch=master)](https://travis-ci.org/unixs/node-btree)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
+![GitHub issues](https://img.shields.io/github/issues-raw/unixs/node-btree)
+![npm](https://img.shields.io/npm/v/node-btree)
+
 ## Brief
 
 Node.js native Balanced Binary Tree implementation based on [GTree from GLib](https://developer.gnome.org/glib/stable/glib-Balanced-Binary-Trees.html#g-tree-remove).
