@@ -17,15 +17,24 @@ And has one additional property: `height` that store bTree height.
 
 ## Limitations
 
-Same as GTree:
+* Same as GTree:
 
-`
-The tree may not be modified while iterating over it (you can't add/remove items). To remove all items matching a predicate, you need to add each item to a list in your GTraverseFunc as you walk over the tree, then walk the list and remove each item.
-`
+> The tree may not be modified while iterating over it (you can't add/remove items).
 
+* Module has some copy/paste from original glib C code for iterator implementation.
 So.. for-of cycle is work fine, but usage forEach() method - preferred.
 
-Node.js >= 10.
+* Node.js >= 10.
+
+* Support building on POSIX platforms only at this moment.
+
+## Dependency & build
+
+For successfull instalation you must have installed libglib binary & C headers.
+
+On Ubuntu GNU/Linux this packages must be installed:
+
+* libglib2.0-dev
 
 ## Usage
 
