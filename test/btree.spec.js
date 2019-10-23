@@ -84,6 +84,16 @@ describe("Base functionality", () => {
       expect(btree.get("15")).toBe(150);
     });
 
+    it('Check set() method', () => {
+      const btree = new BTree(comparator);
+
+      btree.set("key", 10);
+      btree.set(20, "value");
+
+      expect(btree.get(20)).toBe("value");
+      // expect(btree.get("key")).toBe(10);
+    });
+
     it('Should be addable if key exists', () => {
       const btree = initBtree();
 

@@ -667,6 +667,8 @@ static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
 
   size_t argc = 1;
   napi_value argv[1];
+
+  // Get es arguments & context
   NAPI_CALL(env,
     napi_get_cb_info(env, cbInfo, &argc, argv, &esBtree, NULL));
 
@@ -676,6 +678,7 @@ static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
   // Initialize native BTree with native comparator & additional user data
   GTree *nativeTree = g_tree_new_with_data(nativeComparator, bTree);
 
+  // Check type of first argument. Must be function
   napi_valuetype comparatorType;
   NAPI_CALL(env,
     napi_typeof(env, argv[0], &comparatorType));
@@ -689,6 +692,7 @@ static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
   bTree->nativeTree = nativeTree;
   bTree->env = env;
 
+  // Create ref on comparator function. Protect from GC
   NAPI_CALL(env,
     napi_create_reference(env, argv[0], 1, &bTree->comparator));
 
