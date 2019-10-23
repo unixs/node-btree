@@ -132,13 +132,6 @@ static inline gboolean removeTreeNode(gpointer key, gpointer val, gpointer data)
 }
 
 /**
- * Unref all bTree nodes for GC access. Wrapper with typechecking.
- */
-//static inline gboolean removeTreeNodeTyped(napi_ref key, BTree_t *bTree) {
-//  return removeTreeNode((gpointer) key, NULL, (gpointer) bTree);
-//}
-
-/**
  * Free allocated GTree & unref comparator for GC access
  */
 static void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint) {
