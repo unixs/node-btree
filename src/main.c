@@ -273,11 +273,10 @@ static napi_value esDelete(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env,
     napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
 
+  // If key arg not passed. Set it to undefined
   if (argc < 1) {
     NAPI_CALL(env,
-      napi_throw_error(env, NULL, msgTooFewArguments));
-
-      return NULL;
+      napi_get_undefined(env, &argv[0]));
   }
 
   // Extract native BTree pointer
@@ -313,18 +312,18 @@ static napi_value esDelete(napi_env env, napi_callback_info cbInfo) {
 static napi_value esSet(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis;
   BTree_t *bTree;
-  size_t argc = 2;
+  size_t  argc = 2,
+          expectedArgc = argc;
   napi_value argv[2], key, value, box;
 
   // Get es this
   NAPI_CALL(env,
     napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
 
-  if (argc < 2) {
+  // Set to undefined all (key, value) missing arguments.
+  for (size_t i = argc; i < expectedArgc; i++) {
     NAPI_CALL(env,
-      napi_throw_error(env, NULL, msgTooFewArguments));
-
-      return NULL;
+      napi_get_undefined(env, &argv[i]));
   }
 
   key = argv[0];
@@ -399,11 +398,9 @@ static napi_value esHas(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env,
     napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
 
+  // If key arg not passed. Set it to undefined
   if (argc < 1) {
-    NAPI_CALL(env,
-      napi_throw_error(env, NULL, msgTooFewArguments));
-
-      return NULL;
+    NAPI_CALL(env, napi_get_undefined(env, &argv[0]));
   }
 
   // Extract native BTree pointer
@@ -454,11 +451,10 @@ static napi_value esGet(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env,
     napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
 
+  // If key arg not passed. Set it to undefined
   if (argc < 1) {
     NAPI_CALL(env,
-      napi_throw_error(env, NULL, msgTooFewArguments));
-
-      return NULL;
+      napi_get_undefined(env, &argv[0]));
   }
 
   // Extract native BTree pointer

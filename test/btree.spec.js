@@ -115,6 +115,41 @@ describe("Base functionality", () => {
       expect(btree.get("30")).toBe(40);
     });
 
+    it('Should accept set() without args', () => {
+      const btree = new BTree(comparator);
+
+      btree.set();
+
+      expect(btree.size).toBe(1);
+      expect(btree.get(undefined) === undefined).toBeTruthy();
+      expect(btree.get() === undefined).toBeTruthy();
+    });
+
+    it('Should accept set() with one first arg', () => {
+      const btree = new BTree(comparator);
+
+      btree.set(1);
+
+      expect(btree.size).toBe(1);
+      expect(btree.get(1) === undefined).toBeTruthy();
+    });
+
+    it('Values should be replaceable by set()', () => {
+      const btree = new BTree(comparator);
+
+      btree.set(1, 2);
+      btree.set(3, 4);
+      btree.set(5, 6);
+
+      expect(btree.size).toBe(3);
+      expect(btree.get(3)).toBe(4);
+
+      btree.set(3, 7);
+
+      expect(btree.size).toBe(3);
+      expect(btree.get(3)).toBe(7);
+    });
+
     it('Items should be deletable if exists', () => {
       const btree = initBtree();
 
@@ -157,7 +192,7 @@ describe("Base functionality", () => {
       expect(btree.size).toBe(1);
     });
 
-    it('Should be chackable by has method', () => {
+    it('has() method should be callable', () => {
       const btree = initBtree();
 
       expect(btree.size).toBe(3);
@@ -166,6 +201,21 @@ describe("Base functionality", () => {
       expect(btree.has("100500")).toBe(false);
     });
 
+    it('has() method should be callable without args', () => {
+      const btree = initBtree();
+
+      expect(btree.size).toBe(3);
+
+      expect(btree.has()).toBe(true);
+    });
+
+    it('has() method should be callable without args and find undefined', () => {
+      const btree = initBtree();
+
+      btree.set();
+
+      expect(btree.has()).toBe(true);
+    });
   });
 
 });
@@ -406,3 +456,9 @@ describe('Traverse functionality', () => {
   });
 
 });
+
+describe('Extra methods', () => {
+  it.todo("reduce() method should be callable");
+  it.todo("map() method should be callable");
+});
+
