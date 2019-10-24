@@ -619,7 +619,7 @@ static gboolean nativeBTreeTraverse(gpointer key, gpointer val, gpointer data) {
   NAPI_CALL(env, false,
     napi_get_named_property(env, esObject, "value", &esValue));
 
-  napi_value argv[] = { esKey, esValue };
+  napi_value argv[] = { esValue, esKey };
   NAPI_CALL(env, false,
     napi_get_null(env, &esNull));
 

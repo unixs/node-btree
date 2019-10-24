@@ -368,7 +368,7 @@ describe('Traverse functionality', () => {
 
       const checkIterator = check[Symbol.iterator]();
 
-      btree.forEach((key, val) => {
+      btree.forEach((val, key) => {
         const check = checkIterator.next().value;
 
         expect(key).toBe(check.key);
