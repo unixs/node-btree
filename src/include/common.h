@@ -1,4 +1,8 @@
-#define NAPI_CALL(env, call)                                                   \
+#define __NAPI_CALL_ERROR_RETURN(flag) __NAPI_CALL_ERROR_RETURN_##flag
+#define __NAPI_CALL_ERROR_RETURN_1 return NULL
+#define __NAPI_CALL_ERROR_RETURN_0
+
+#define NAPI_CALL(env, ret, call)                                              \
   do {                                                                         \
     napi_status status = (call);                                               \
     if (status != napi_ok) {                                                   \
@@ -11,7 +15,7 @@
                                   ? "empty error message"                      \
                                   : error_info->error_message;                 \
         napi_throw_error((env), NULL, message);                                \
-        return (napi_value) NULL;                                              \
+        __NAPI_CALL_ERROR_RETURN(ret);                                         \
       }                                                                        \
     }                                                                          \
   } while (0)
@@ -22,9 +26,9 @@
 #define NAPI_GLOBAL_SYM(env, name, napiVar)                                    \
 {                                                                              \
   napi_value global, Symbol;                                                   \
-  NAPI_CALL(env, napi_get_global(env, &global));                               \
-  NAPI_CALL(env, napi_get_named_property(env, global, "Symbol", &Symbol));     \
-  NAPI_CALL(env, napi_get_named_property(env, Symbol, name, &napiVar));        \
+  NAPI_CALL(env, false, napi_get_global(env, &global));                        \
+  NAPI_CALL(env, false, napi_get_named_property(env, global, "Symbol", &Symbol)); \
+  NAPI_CALL(env, false, napi_get_named_property(env, Symbol, name, &napiVar)); \
 }
 
 /**
@@ -39,7 +43,7 @@ ptr->esKeyValue = ref;                                                         \
  * Free node
  */
 #define FREE_NODE(node)                                                        \
-NAPI_CALL(((BTreeNode) node)->bTree->env,                                      \
+NAPI_CALL(((BTreeNode) node)->bTree->env, false,                               \
   napi_delete_reference(((BTreeNode) node)->bTree->env,                        \
     ((BTreeNode) node)->esKeyValue));                                          \
 g_free((gpointer) node);
