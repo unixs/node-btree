@@ -15,6 +15,10 @@ Writen on C with [N-API](https://nodejs.org/dist/latest-v12.x/docs/api/n-api.htm
 Module implement Map interface: `set()`, `get()`, `has()`, etc.
 And has one additional property: `height` that store bTree height.
 
+## Latest release changes
+
+See: [CHANGELOG.md](https://github.com/unixs/node-btree/blob/master/CHANGELOG.md)
+
 ## Limitations
 
 * Same as GTree:

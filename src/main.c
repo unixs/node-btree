@@ -4,7 +4,8 @@
 #include "include/common.h"
 #include "include/glib_local.h"
 
-static char *msgTooFewArguments = "Too few arguments.";
+static const char *msgTooFewArguments = "Too few arguments.";
+static const char *msgCorrupt = "BTree corrupt. Next node expected but it is null.";
 
 /**
  * Native iterator state
@@ -55,6 +56,15 @@ typedef struct {
   // ES value for return
   napi_value value;
 } IteratorContext_t;
+
+typedef struct {
+  napi_value esbTree;
+  napi_value callback;
+  napi_value cbThis;
+  guint idx;
+  BTree_t *bTree;
+  void *data;
+} ForEachContext_t;
 
 /**
  * Native callback for generic operations
@@ -165,6 +175,50 @@ static void freeTreeValue(gpointer treeValue) {
   FREE_NODE(treeValue);
 }
 
+static gboolean nativeBTreeMap(gpointer key, gpointer value, gpointer data) {
+  BTreeNode node = (BTreeNode) value;
+  ForEachContext_t *ctxt = (ForEachContext_t *) data;
+  napi_value array = (napi_value) ctxt->data;
+  napi_env env = ctxt->bTree->env;
+
+  napi_value esNode, esKey, esValue, esIdx, cbResult;
+
+  if (node == NULL) {
+    NAPI_CALL(env, false,
+      napi_throw_error(env, NULL, msgCorrupt));
+
+    return true;
+  }
+
+  NAPI_CALL(env, false,
+    napi_get_reference_value(env, node->esKeyValue, &esNode));
+
+  NAPI_CALL(env, false,
+    napi_get_named_property(env, esNode, "key", &esKey));
+
+  NAPI_CALL(env, false,
+    napi_get_named_property(env, esNode, "value", &esValue));
+
+  NAPI_CALL(env, false,
+    napi_create_int64(env, ctxt->idx, &esIdx));
+
+  napi_value argv[] = {
+    esValue,
+    esKey,
+    esIdx,
+    ctxt->esbTree
+  };
+
+  NAPI_CALL(env, false,
+    napi_call_function(env, ctxt->cbThis, ctxt->callback,
+      (sizeof(argv) / sizeof(napi_value)), argv, &cbResult));
+
+  NAPI_CALL(env, false,
+    napi_set_element(env, array, ctxt->idx++, cbResult));
+
+  return false;
+}
+
 /**
  * Native comparator function
  */
@@ -195,8 +249,8 @@ static inline gint nativeComparator(gconstpointer a, gconstpointer b, gpointer b
 
   NAPI_CALL(env, false,
     napi_get_reference_value(env, bTreeWrap->comparator, &comparator));
-  napi_value argv[] = {keyA, keyB};
 
+  napi_value argv[] = { keyA, keyB };
   NAPI_CALL(env, false,
     napi_call_function(env, esNull, comparator, 2, argv, &esResult));
 
@@ -604,11 +658,18 @@ static napi_value esGenerator(napi_env env, napi_callback_info cbInfo) {
 /**
  * Native forEach() callback
  */
-static gboolean nativeBTreeTraverse(gpointer key, gpointer val, gpointer data) {
+static gboolean nativeBTreeForEach(gpointer key, gpointer val, gpointer data) {
   BTreeNode node = (BTreeNode) val;
-  napi_value callback = (napi_value) data;
-  napi_env env = node->bTree->env;
-  napi_value esObject, esKey, esValue, esNull;
+  ForEachContext_t *ctxt = (ForEachContext_t *) data;
+  napi_env env = ctxt->bTree->env;
+  napi_value esObject, esKey, esValue, esIdx, esNull;
+
+  if (val == NULL) {
+    NAPI_CALL(env, false,
+      napi_throw_error(env, NULL, msgCorrupt));
+
+    return TRUE;
+  }
 
   NAPI_CALL(env, false,
     napi_get_reference_value(env, node->esKeyValue, &esObject));
@@ -619,12 +680,22 @@ static gboolean nativeBTreeTraverse(gpointer key, gpointer val, gpointer data) {
   NAPI_CALL(env, false,
     napi_get_named_property(env, esObject, "value", &esValue));
 
-  napi_value argv[] = { esValue, esKey };
+  NAPI_CALL(env, false,
+    napi_create_int64(env, ctxt->idx, &esIdx));
+
+  napi_value argv[] = {
+    esValue,
+    esKey,
+    esIdx
+  };
+
   NAPI_CALL(env, false,
     napi_get_null(env, &esNull));
 
   NAPI_CALL(env, false,
-    napi_call_function(env, esNull, callback, 2, argv, NULL));
+    napi_call_function(env, ctxt->cbThis, ctxt->callback, (sizeof(argv) / sizeof(napi_value)), argv, NULL));
+
+  ctxt->idx++;
 
   return FALSE;
 }
@@ -633,33 +704,98 @@ static gboolean nativeBTreeTraverse(gpointer key, gpointer val, gpointer data) {
  * ES callback. es forEach() method
  */
 static napi_value esForeach(napi_env env, napi_callback_info cbInfo) {
-  napi_value esThis, undefined;
+  napi_value esThis, undefined, callback, cbThis, argv[2];
   BTree_t *bTree;
-  size_t argc = 1;
-  napi_value argv[1];
+  size_t argc = 2;
 
 
   // Get es this for current btree
   NAPI_CALL(env, false,
     napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
 
-  if (argc < 1) {
-    NAPI_CALL(env, false,
-      napi_throw_error(env, NULL, msgTooFewArguments));
+  CHECK_ARGC(1, msgTooFewArguments);
+  callback = argv[0];
 
-      return NULL;
+  if (argc > 1) {
+    cbThis = argv[1];
   }
+  else {
+    NAPI_CALL(env, true,
+      napi_get_global(env, &cbThis));
+  }
+
 
   // Extract native BTree pointer
   NAPI_CALL(env, false,
     napi_unwrap(env, esThis, (void **) &bTree));
 
-  g_tree_foreach(bTree->nativeTree, nativeBTreeTraverse, argv[0]);
+  if (cbThis == NULL) {
+    NAPI_CALL(env, false,
+      napi_get_null(env, &cbThis));
+  }
+
+  ForEachContext_t ctxt = {
+    esThis,
+    callback,
+    cbThis,
+    0,
+    bTree,
+    NULL
+  };
+
+  g_tree_foreach(bTree->nativeTree, nativeBTreeForEach, &ctxt);
 
   NAPI_CALL(env, false,
     napi_get_undefined(env, &undefined));
 
   return undefined;
+}
+
+static napi_value esMap(napi_value env, napi_callback_info cbInfo) {
+  napi_value esThis, array, callback, cbThis, argv[2];
+  BTree_t *bTree;
+  size_t argc = 2;
+
+  // Get es this for current btree
+  NAPI_CALL(env, false,
+    napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+
+  // Extract native BTree pointer
+  EXTRACT_BTREE(env, esThis, bTree);
+
+  CHECK_ARGC(1, msgTooFewArguments);
+  callback = argv[0];
+
+  if (argc > 1) {
+    cbThis = argv[1];
+  }
+  else {
+    NAPI_CALL(env, true,
+      napi_get_global(env, &cbThis));
+  }
+
+  gint bTreeSize = g_tree_nnodes(bTree->nativeTree);
+
+  NAPI_CALL(env, true,
+    napi_create_array_with_length(env, (size_t) bTreeSize, &array));
+
+  if (cbThis == NULL) {
+    NAPI_CALL(env, false,
+      napi_get_null(env, &cbThis));
+  }
+
+  ForEachContext_t ctxt = {
+    esThis,
+    callback,
+    cbThis,
+    0,
+    bTree,
+    array
+  };
+
+  g_tree_foreach(bTree->nativeTree, nativeBTreeMap, &ctxt);
+
+  return array;
 }
 
 /**
@@ -857,6 +993,19 @@ static napi_value init(napi_env env, napi_value exports) {
       NULL,
 
       esHas,
+      NULL,
+      NULL,
+      NULL,
+
+      napi_default,
+      NULL
+    },
+    // Extra methods
+    {
+      "map",
+      NULL,
+
+      esMap,
       NULL,
       NULL,
       NULL,

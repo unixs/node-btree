@@ -20,6 +20,16 @@
     }                                                                          \
   } while (0)
 
+#define CHECK_ARGC(expected, msg)                                              \
+  if (argc < expected) {                                                       \
+    NAPI_CALL(env, false,                                                      \
+      napi_throw_error(env, NULL, msg));                                       \
+      return NULL;                                                             \
+  }
+
+#define EXTRACT_BTREE(env, this, ptr)\
+  NAPI_CALL(env, false, napi_unwrap(env, this, (void **) &ptr));
+
 /**
  * Get globas ES Symbol
  */

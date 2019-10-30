@@ -14,6 +14,16 @@ function comparator(a, b) {
   }
 }
 
+function initBtree() {
+  const btree = new BTree(comparator);
+
+  btree.set("50", 50);
+  btree.set("30", 30);
+  btree.set("15", 150);
+
+  return btree;
+}
+
 describe("Inheritance", () => {
   it("Create BTree instance", () => {
     const btree = new BTree(comparator);
@@ -23,16 +33,6 @@ describe("Inheritance", () => {
 });
 
 describe("Base functionality", () => {
-
-  function initBtree() {
-    const btree = new BTree(comparator);
-
-    btree.set("50", 50);
-    btree.set("30", 30);
-    btree.set("15", 150);
-
-    return btree;
-  }
 
   describe("BTree specific", () => {
 
@@ -50,7 +50,7 @@ describe("Base functionality", () => {
 
   });
 
-  describe("Map() implementation", () => {
+  describe("Map() interface implementation", () => {
 
     it("Check size property if empty", () => {
       const btree = new BTree(comparator);
@@ -277,6 +277,135 @@ describe('Traverse functionality', () => {
 
   describe("Iteration methods", () => {
 
+    describe('forEach()', () => {
+      it('Should be iterable by forEach()', () => {
+        const btree = new BTree(comparator);
+
+        btree.set("50", 51);
+        btree.set("15", 150);
+        btree.set("30", 30);
+
+        const check = [
+          {
+            key: "15",
+            val: 150
+          },
+          {
+            key: "30",
+            val: 30
+          },
+          {
+            key: "50",
+            val: 51
+          },
+        ];
+
+        const checkIterator = check[Symbol.iterator]();
+
+        btree.forEach((val, key) => {
+          const check = checkIterator.next().value;
+
+          expect(key).toBe(check.key);
+          expect(val).toBe(check.val);
+        });
+      });
+
+      it('forEach() should have value first arg', () => {
+        const btree = initBtree();
+
+        const check = [150, 30, 50];
+
+        const checkIterator = check[Symbol.iterator]();
+
+        btree.forEach((val) => {
+          expect(val).toBe(checkIterator.next().value);
+        });
+      });
+
+      it('forEach() should have key second arg', () => {
+        const btree = initBtree();
+
+        const check = ["15", "30", "50"];
+
+        const checkIterator = check[Symbol.iterator]();
+
+        btree.forEach((_val, key) => {
+          expect(key).toBe(checkIterator.next().value);
+        });
+      });
+
+      it("forEach() callback should have third idx arg", () => {
+        const btree = initBtree();
+
+        let i = 0;
+
+        btree.forEach((_val, _key, idx) => {
+          expect(idx).toBe(i++);
+        });
+      });
+
+      it("forEach() should recive context with basic function", () => {
+        const btree = initBtree();
+
+        btree.forEach(function(val) {
+
+          expect(this.something).toBe("test");
+
+          return val;
+        }, { something: "test" });
+      });
+
+      it("forEach() should not recive context with arrow function", () => {
+        const btree = initBtree();
+
+        btree.forEach((val) => {
+
+          expect(this).toMatchObject({});
+          expect(this.test).toBe(undefined);
+
+          return val;
+        }, { test: "test" });
+      });
+
+      it("forEach() should have Object context with arrow function", () => {
+        const btree = initBtree();
+
+        btree.forEach((val) => {
+
+          expect(this).toMatchObject({});
+
+          return val;
+        });
+      });
+
+      it("forEach() should have global context with basic function", () => {
+        const btree = initBtree();
+
+        btree.forEach(function(val) {
+          expect(this.process).toBeDefined();
+          expect(this.process.nextTick).toBeDefined();
+          expect(this.setTimeout).toBeDefined();
+
+          return val;
+        });
+      });
+
+      it('forEach() should throw error if few arguments', (done) => {
+        const btree = initBtree();
+
+        try {
+          btree.forEach();
+
+          done.fail("Should throw error.");
+        } catch (e) {
+          expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
+          done();
+        }
+      });
+
+    });
+
+
     it('Should be iterable by for-of', () => {
       const btree = new BTree(comparator);
 
@@ -342,38 +471,6 @@ describe('Traverse functionality', () => {
         expect(key).toBe(expected.value.key);
         expect(value).toBe(expected.value.val);
       }
-    });
-
-    it('Should be iterable by forEach()', () => {
-      const btree = new BTree(comparator);
-
-      btree.set("50", 51);
-      btree.set("15", 150);
-      btree.set("30", 30);
-
-      const check = [
-        {
-          key: "15",
-          val: 150
-        },
-        {
-          key: "30",
-          val: 30
-        },
-        {
-          key: "50",
-          val: 51
-        },
-      ];
-
-      const checkIterator = check[Symbol.iterator]();
-
-      btree.forEach((val, key) => {
-        const check = checkIterator.next().value;
-
-        expect(key).toBe(check.key);
-        expect(val).toBe(check.val);
-      });
     });
 
     it('Should be iterable by values()', () => {
@@ -458,7 +555,126 @@ describe('Traverse functionality', () => {
 });
 
 describe('Extra methods', () => {
-  it.todo("reduce() method should be callable");
-  it.todo("map() method should be callable");
-});
+  it.todo("toArray()");
+  it.todo("toArrays()");
+  it.todo("toObject()");
+  it.todo("toJSON()");
 
+  describe('reduce()', () => {
+    it.todo("reduce() method should be callable");
+  });
+
+
+  describe('map()', () => {
+
+    it("map() should be callable & return array", () => {
+      const btree = initBtree();
+
+      const array = btree.map(val => val);
+
+      expect(array.constructor.name).toBe("Array");
+      expect(array.length).toBe(3);
+    });
+
+    it("map() callback should have first value arg", () => {
+      const btree = initBtree();
+
+      const array = btree.map(val => val);
+
+      expect(array[0]).toBe(150);
+      expect(array.length).toBe(3);
+    });
+
+    it("map() callback should have second key arg", () => {
+      const btree = initBtree();
+
+      const array = btree.map((_val, key) => key);
+
+      expect(array[1]).toBe("30");
+      expect(array.length).toBe(3);
+    });
+
+    it("map() callback should have third idx arg", () => {
+      const btree = initBtree();
+
+      const array = btree.map((_val, _key, idx) => idx);
+
+      expect(array.length).toBe(3);
+
+      for (let i = 0; i < 3; i++) {
+        expect(array[i]).toBe(i);
+      }
+    });
+
+    it("map() callback should have fourth bTree arg", () => {
+      const btree = initBtree();
+
+      const array = btree.map((_val, _key, _idx, btree) => btree);
+
+      expect(array[0]).toBeInstanceOf(BTree);
+      expect(array.length).toBe(3);
+      expect(array[1].get("15")).toBe(150);
+    });
+
+    it("map() should recive context with basic function", () => {
+      const btree = initBtree();
+
+      btree.map(function(val) {
+
+        expect(this.test).toBe("test");
+
+        return val;
+      }, { test: "test" });
+    });
+
+    it("map() should not recive context with arrow function", () => {
+      const btree = initBtree();
+
+      btree.map((val) => {
+
+        expect(this).toMatchObject({});
+        expect(this.test).toBe(undefined);
+
+        return val;
+      }, { test: "test" });
+    });
+
+    it("map() should have Object context with arrow function", () => {
+      const btree = initBtree();
+
+      btree.map((val) => {
+
+        expect(this).toMatchObject({});
+
+        return val;
+      });
+    });
+
+    it("map() should have global context with basic function", () => {
+      const btree = initBtree();
+
+      btree.map(function(val) {
+        expect(this.process).toBeDefined();
+        expect(this.process.nextTick).toBeDefined();
+        expect(this.setTimeout).toBeDefined();
+
+        return val;
+      });
+    });
+
+    it('map() should throw error if few arguments', (done) => {
+      const btree = initBtree();
+
+      try {
+        btree.map();
+
+        done.fail("Should throw error.");
+      } catch (e) {
+        expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
+        done();
+      }
+    });
+
+  });
+
+});

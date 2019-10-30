@@ -10,7 +10,6 @@
       "request": "launch",
       "program": "/usr/bin/node",
       "args": [
-        "--expose-gc",
         "tmp/native_debug.js"
       ],
       "stopAtEntry": false,
@@ -31,9 +30,22 @@
       "request": "launch",
       "name": "Launch Program",
       "runtimeArgs": [
-        "--expose-gc"
+        //"--expose-gc"
       ],
-      "program": "${workspaceFolder}/test/native.js",
+      "program": "${workspaceFolder}/tmp/native_debug.js",
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Jest All",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": ["--runInBand"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true,
+      "windows": {
+        "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+      }
     }
   ]
 }
