@@ -567,8 +567,6 @@ describe('Extra methods', () => {
       const btree = initBtree();
 
       const result = btree.reduce((acc, val, _key, _idx, _btree) => {
-        console.log(acc, val, _key, _idx, _btree);
-
         return acc + val;
       }, 3);
 
@@ -746,7 +744,8 @@ describe('Extra methods', () => {
         btree.map();
 
         done.fail("Should throw error.");
-      } catch (e) {
+      }
+      catch (e) {
         expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
         done();
       }
