@@ -30,11 +30,22 @@
     "b-tree",
     "map",
     "native",
-    "glib"
+    "glib",
+    "balanced",
+    "binary",
+    "tree"
   ],
   "engines": {
     "node": ">=10"
   },
+  "cpu": [
+    "x64",
+    "ppc64",
+    "arm64"
+  ],
+  "os": [
+    "!win32"
+  ],
   "dependencies": {
     "node-pre-gyp": "~0.13.0"
   },

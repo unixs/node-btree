@@ -61,7 +61,7 @@ typedef struct {
   napi_value esbTree;
   napi_value callback;
   napi_value cbThis;
-  guint idx;
+  size_t idx;
   BTree_t *bTree;
   void *data;
 } ForEachContext_t;
@@ -175,6 +175,9 @@ static void freeTreeValue(gpointer treeValue) {
   FREE_NODE(treeValue);
 }
 
+/**
+ * Native callback for ES map()
+ */
 static gboolean nativeBTreeMap(gpointer key, gpointer value, gpointer data) {
   BTreeNode node = (BTreeNode) value;
   ForEachContext_t *ctxt = (ForEachContext_t *) data;
@@ -215,6 +218,53 @@ static gboolean nativeBTreeMap(gpointer key, gpointer value, gpointer data) {
 
   NAPI_CALL(env, false,
     napi_set_element(env, array, ctxt->idx++, cbResult));
+
+  return false;
+}
+
+/**
+ * Native callback for es reduce()
+ */
+static gboolean nativeBTreeReduce(gpointer key, gpointer value, gpointer data) {
+  BTreeNode node = (BTreeNode) value;
+  ForEachContext_t *ctxt = (ForEachContext_t *) data;
+  napi_value accumulator = (napi_value) ctxt->data;
+  napi_env env = ctxt->bTree->env;
+
+  napi_value esNode, esKey, esValue, esIdx, cbResult;
+
+  if (node == NULL) {
+    NAPI_CALL(env, false,
+      napi_throw_error(env, NULL, msgCorrupt));
+
+    return true;
+  }
+
+  NAPI_CALL(env, false,
+    napi_get_reference_value(env, node->esKeyValue, &esNode));
+
+  NAPI_CALL(env, false,
+    napi_get_named_property(env, esNode, "key", &esKey));
+
+  NAPI_CALL(env, false,
+    napi_get_named_property(env, esNode, "value", &esValue));
+
+  NAPI_CALL(env, false,
+    napi_create_int64(env, ctxt->idx++, &esIdx));
+
+  napi_value argv[] = {
+    accumulator,
+    esValue,
+    esKey,
+    esIdx,
+    ctxt->esbTree
+  };
+
+  NAPI_CALL(env, false,
+    napi_call_function(env, ctxt->cbThis, ctxt->callback,
+      (sizeof(argv) / sizeof(napi_value)), argv, &cbResult));
+
+  ctxt->data = (void *) cbResult;
 
   return false;
 }
@@ -724,15 +774,9 @@ static napi_value esForeach(napi_env env, napi_callback_info cbInfo) {
       napi_get_global(env, &cbThis));
   }
 
-
   // Extract native BTree pointer
   NAPI_CALL(env, false,
     napi_unwrap(env, esThis, (void **) &bTree));
-
-  if (cbThis == NULL) {
-    NAPI_CALL(env, false,
-      napi_get_null(env, &cbThis));
-  }
 
   ForEachContext_t ctxt = {
     esThis,
@@ -779,11 +823,6 @@ static napi_value esMap(napi_value env, napi_callback_info cbInfo) {
   NAPI_CALL(env, true,
     napi_create_array_with_length(env, (size_t) bTreeSize, &array));
 
-  if (cbThis == NULL) {
-    NAPI_CALL(env, false,
-      napi_get_null(env, &cbThis));
-  }
-
   ForEachContext_t ctxt = {
     esThis,
     callback,
@@ -796,6 +835,39 @@ static napi_value esMap(napi_value env, napi_callback_info cbInfo) {
   g_tree_foreach(bTree->nativeTree, nativeBTreeMap, &ctxt);
 
   return array;
+}
+
+static napi_value esReduce(napi_value env, napi_callback_info cbInfo) {
+  napi_value esThis, array, callback, accumulator, cbThis, argv[2];
+  BTree_t *bTree;
+  size_t argc = 2;
+
+  // Get es this for current btree
+  NAPI_CALL(env, false,
+    napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+
+  // Extract native BTree pointer
+  EXTRACT_BTREE(env, esThis, bTree);
+
+  CHECK_ARGC(2, msgTooFewArguments);
+  callback = argv[0];
+  accumulator = argv[1];
+
+  NAPI_CALL(env, true,
+    napi_get_global(env, &cbThis));
+
+  ForEachContext_t ctxt = {
+    esThis,
+    callback,
+    cbThis,
+    0,
+    bTree,
+    accumulator
+  };
+
+  g_tree_foreach(bTree->nativeTree, nativeBTreeReduce, &ctxt);
+
+  return (napi_value) ctxt.data;
 }
 
 /**
@@ -1006,6 +1078,18 @@ static napi_value init(napi_env env, napi_value exports) {
       NULL,
 
       esMap,
+      NULL,
+      NULL,
+      NULL,
+
+      napi_default,
+      NULL
+    },
+    {
+      "reduce",
+      NULL,
+
+      esReduce,
       NULL,
       NULL,
       NULL,

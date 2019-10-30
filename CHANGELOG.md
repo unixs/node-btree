@@ -7,10 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* filter()
 * toArray()
 * toArrays()
 * toObject()
 * toJSON()
+
+## [0.4.0] - 2019-10-31
+
+### Added
+
+* reduce() method
+* reduce() tests
+
+### Changed
+
+* README.md
 
 ## [0.3.3] - 2019-10-30
 

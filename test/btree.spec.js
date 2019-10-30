@@ -397,7 +397,8 @@ describe('Traverse functionality', () => {
           btree.forEach();
 
           done.fail("Should throw error.");
-        } catch (e) {
+        }
+        catch (e) {
           expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
           done();
         }
@@ -555,13 +556,89 @@ describe('Traverse functionality', () => {
 });
 
 describe('Extra methods', () => {
+  it.todo("filter()");
   it.todo("toArray()");
   it.todo("toArrays()");
   it.todo("toObject()");
   it.todo("toJSON()");
 
   describe('reduce()', () => {
-    it.todo("reduce() method should be callable");
+    it("reduce() should be callable & return valid value for numbers", () => {
+      const btree = initBtree();
+
+      const result = btree.reduce((acc, val, _key, _idx, _btree) => {
+        console.log(acc, val, _key, _idx, _btree);
+
+        return acc + val;
+      }, 3);
+
+      expect(result).toBe(233);
+    });
+
+    it("reduce() callback should have first value arg", () => {
+      const btree = initBtree();
+
+      const array = btree.reduce((acc, val) => {
+        acc.push(val);
+
+        return acc;
+      }, []);
+
+      expect(array.length).toBe(3);
+      expect(array[2]).toBe(50);
+    });
+
+    it("reduce() callback should have second key arg", () => {
+      const btree = initBtree();
+
+      const str = btree.reduce((acc, _val, key) => {
+        return acc + key;
+      }, "");
+
+      expect(str.length).toBe(6);
+      expect(str).toBe("153050");
+    });
+
+    it("reduce() callback should have third idx arg", () => {
+      const btree = initBtree();
+
+      const array = btree.reduce((acc, _val, _key, idx) => {
+        acc.push(idx);
+
+        return acc;
+      }, []);
+
+      expect(array.length).toBe(3);
+
+      for (let i = 0; i < 3; i++) {
+        expect(array[i]).toBe(i);
+      }
+    });
+
+    it("reduce() callback should have fourth bTree arg", () => {
+      const btree = initBtree();
+
+      const result = btree.reduce((_acc, _val, _key, _idx, btree) => btree, null);
+
+      expect(result).toBeInstanceOf(BTree);
+      expect(result.size).toBe(3);
+      expect(result.get("15")).toBe(150);
+    });
+
+    it('reduce() should throw error if few arguments', (done) => {
+      const btree = initBtree();
+
+      try {
+        btree.reduce((acc, val) => val);
+
+        done.fail("Should throw error.");
+      }
+      catch (e) {
+        expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
+        done();
+      }
+    });
+
   });
 
 

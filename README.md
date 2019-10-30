@@ -13,7 +13,7 @@ Node.js native Balanced Binary Tree implementation based on [GTree from GLib](ht
 Writen on C with [N-API](https://nodejs.org/dist/latest-v12.x/docs/api/n-api.html).
 
 Module implement Map interface: `set()`, `get()`, `has()`, etc.
-And has one additional property: `height` that store bTree height.
+Has one additional property: `height` that store bTree height, and natively support map/reduce operations.
 
 ## Latest release changes
 
@@ -24,9 +24,6 @@ See: [CHANGELOG.md](https://github.com/unixs/node-btree/blob/master/CHANGELOG.md
 * Same as GTree:
 
 > The tree may not be modified while iterating over it (you can't add/remove items).
-
-* Module has some copy/paste from original glib C code for iterator implementation.
-So.. for-of cycle is work fine, but usage forEach() method - preferred.
 
 * Node.js >= 10.
 
@@ -70,12 +67,18 @@ btree.has("30");
 // true
 
 
-btree.forEach((key, value) => {
-  console.log(key, value);
+btree.forEach((val, key) => {
+  console.log(key, val);
 });
 // "15" 150
 // "30" 30
 // "50" 50
+
+btree.map((val) => val);
+// [150, 30, 50]
+
+btree.reduce((acc, val) => acc + val, 0);
+// 230
 
 btree.size;
 // 3

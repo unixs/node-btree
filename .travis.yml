@@ -2,8 +2,16 @@ dist: bionic
 language: node_js
 
 node_js:
-  - 12
   - 10
+  - 12
+  - 13
+
+matrix:
+  include:
+   - os: linux
+     arch: amd64
+   - os: linux
+     arch: arm64
 
 cache:
   directories:
