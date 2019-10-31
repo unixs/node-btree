@@ -1,10 +1,11 @@
 # node-btree
 
+[![NPM](https://nodei.co/npm/node-btree.png?compact=true)](https://nodei.co/npm/node-btree/)
+
 [![Build Status](https://travis-ci.org/unixs/node-btree.svg?branch=master)](https://travis-ci.org/unixs/node-btree)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
+[![GitHub issues](https://github.com/unixs/node-btree/issues)](https://img.shields.io/github/issues-raw/unixs/node-btree)
 
-![GitHub issues](https://img.shields.io/github/issues-raw/unixs/node-btree)
-![npm](https://img.shields.io/npm/v/node-btree)
 
 ## Brief
 
