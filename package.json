@@ -41,9 +41,6 @@
   "cpu": [
     "x64"
   ],
-  "os": [
-    "!win32"
-  ],
   "dependencies": {
     "node-pre-gyp": "~0.14.0"
   },
