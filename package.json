@@ -1,6 +1,6 @@
 {
   "name": "node-btree",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Native binary tree implementation baseb on GLib Balanced Binary Trees (GTree) for Node.js",
   "main": "./lib/index",
   "scripts": {
@@ -50,7 +50,7 @@
   "devDependencies": {
     "@types/jest": "~24",
     "@types/node": "~12",
-    "aws-sdk": "~2.560.0",
+    "aws-sdk": "~2.566.0",
     "eslint": "~6",
     "eslint-plugin-jest": "~23",
     "jest": "~24"

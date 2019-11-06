@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-* filter()
 * toArray()
 * toArrays()
 * toObject()
 * toJSON()
+
+## [0.5.0] - 2019-11-07
+
+### Added
+
+* filter() method
+* BTree.from() static method
 
 ## [0.4.0] - 2019-10-31
 
