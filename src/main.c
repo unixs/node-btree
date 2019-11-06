@@ -74,6 +74,26 @@ typedef void (*iteratorResultCallback)(IteratorContext_t *ctxt);
 // Cached ES constructor
 static napi_ref constructor;
 
+static void nativeInsertNode(napi_env env, napi_value esBtree, napi_value box) {
+  BTree_t *bTree;
+
+  // Extract native BTree pointer
+  NAPI_CALL(env, false,
+    napi_unwrap(env, esBtree, (void **) &bTree));
+
+  // Set ref counter to 1 for protect from GC
+  napi_ref nodeRef;
+  NAPI_CALL(env, false,
+    napi_create_reference(env, box, 1, &nodeRef));
+
+  // Alloc new tree node
+  BTreeNode node;
+  NEW_NODE(node, bTree, nodeRef);
+
+  // Add es plain object to native bTree
+  g_tree_replace(bTree->nativeTree, node, node);
+}
+
 /**
  * Callback for iterator wich return key with value
  */
@@ -269,6 +289,80 @@ static gboolean nativeBTreeReduce(gpointer key, gpointer value, gpointer data) {
   return false;
 }
 
+static gboolean nativeBTreeFilter(gpointer key, gpointer value, gpointer data) {
+  BTreeNode node = (BTreeNode) value;
+  ForEachContext_t *ctxt = (ForEachContext_t *) data;
+  napi_value accumulator = (napi_value) ctxt->data;
+  napi_env env = ctxt->bTree->env;
+
+  napi_value esNode, esKey, esValue, esIdx, cbResult;
+
+  if (node == NULL) {
+    NAPI_CALL(env, false,
+      napi_throw_error(env, NULL, msgCorrupt));
+
+    return true;
+  }
+
+  NAPI_CALL(env, false,
+    napi_get_reference_value(env, node->esKeyValue, &esNode));
+
+  NAPI_CALL(env, false,
+    napi_get_named_property(env, esNode, KEY, &esKey));
+
+  NAPI_CALL(env, false,
+    napi_get_named_property(env, esNode, VALUE, &esValue));
+
+  NAPI_CALL(env, false,
+    napi_create_int64(env, ctxt->idx++, &esIdx));
+
+  napi_value argv[] = {
+    esValue,
+    esKey,
+    esIdx,
+    ctxt->esbTree
+  };
+
+  NAPI_CALL(env, false,
+    napi_call_function(env, ctxt->cbThis, ctxt->callback,
+      (sizeof(argv) / sizeof(napi_value)), argv, &cbResult));
+
+  NAPI_CALL(env, true,
+    napi_coerce_to_bool(env, cbResult, &cbResult));
+
+  bool ok = false;
+
+  NAPI_CALL(env, true,
+    napi_get_value_bool(env, cbResult, &ok));
+
+  if (ok) {
+    napi_handle_scope scope;
+
+    NAPI_CALL(env, true,
+      napi_open_handle_scope(env, &scope));
+
+    napi_value box;
+
+    // Create box es object
+    NAPI_CALL(env, false,
+      napi_create_object(env, &box));
+
+    // Set key & value to box
+    NAPI_CALL(env, false,
+      napi_set_named_property(env, box, KEY, esKey));
+    NAPI_CALL(env, false,
+      napi_set_named_property(env, box, VALUE, esValue));
+
+    nativeInsertNode(env, accumulator, box);
+
+    NAPI_CALL(env, true,
+      napi_close_handle_scope(env, scope));
+    // ctxt->data = (void *) cbResult;
+  }
+
+  return false;
+}
+
 /**
  * Native comparator function
  */
@@ -408,26 +502,6 @@ static napi_value esDelete(napi_env env, napi_callback_info cbInfo) {
     napi_get_boolean(env, found, &result));
 
   return result;
-}
-
-static void nativeInsertNode(napi_env env, napi_value esBtree, napi_value box) {
-  BTree_t *bTree;
-
-  // Extract native BTree pointer
-  NAPI_CALL(env, false,
-    napi_unwrap(env, esBtree, (void **) &bTree));
-
-  // Set ref counter to 1 for protect from GC
-  napi_ref nodeRef;
-  NAPI_CALL(env, false,
-    napi_create_reference(env, box, 1, &nodeRef));
-
-  // Alloc new tree node
-  BTreeNode node;
-  NEW_NODE(node, bTree, nodeRef);
-
-  // Add es plain object to native bTree
-  g_tree_replace(bTree->nativeTree, node, node);
 }
 
 /**
@@ -874,6 +948,53 @@ static napi_value esReduce(napi_value env, napi_callback_info cbInfo) {
   return (napi_value) ctxt.data;
 }
 
+static napi_value esFilter(napi_value env, napi_callback_info cbInfo) {
+  napi_value esThis, array, callback, accumulator, cbThis, argv[2];
+  BTree_t *bTree;
+  size_t argc = 2;
+
+  // Get es this for current btree
+  NAPI_CALL(env, false,
+    napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+
+  // Extract native BTree pointer
+  EXTRACT_BTREE(env, esThis, bTree);
+
+  CHECK_ARGC(1, msgTooFewArguments);
+  callback = argv[0];
+
+  if (argc > 1) {
+    cbThis = argv[1];
+  }
+  else {
+    NAPI_CALL(env, true,
+      napi_get_global(env, &cbThis));
+  }
+
+  napi_value esbTreeConstructor, comparatorFunc;
+  NAPI_CALL(env, true,
+    napi_get_reference_value(env, constructor, &esbTreeConstructor));
+
+  NAPI_CALL(env, true,
+    napi_get_reference_value(env, bTree->comparator, &comparatorFunc));
+
+  NAPI_CALL(env, true,
+    napi_new_instance(env, esbTreeConstructor, 1, &comparatorFunc, &accumulator));
+
+  ForEachContext_t ctxt = {
+    esThis,
+    callback,
+    cbThis,
+    0,
+    bTree,
+    accumulator
+  };
+
+  g_tree_foreach(bTree->nativeTree, nativeBTreeFilter, &ctxt);
+
+  return (napi_value) ctxt.data;
+}
+
 /**
  * ES callback. Constructor
  */
@@ -1279,6 +1400,18 @@ static napi_value init(napi_env env, napi_value exports) {
       NULL,
 
       esReduce,
+      NULL,
+      NULL,
+      NULL,
+
+      napi_default,
+      NULL
+    },
+    {
+      "filter",
+      NULL,
+
+      esFilter,
       NULL,
       NULL,
       NULL,

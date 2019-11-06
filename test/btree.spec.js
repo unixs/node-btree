@@ -24,6 +24,12 @@ function initBtree() {
   return btree;
 }
 
+function *initGenerator() {
+  yield { key: "15", value: 150 };
+  yield { key: "30", value: 30 };
+  yield { key: "50", value: 50 };
+}
+
 describe("Inheritance", () => {
   it("Create BTree instance", () => {
     const btree = new BTree(comparator);
@@ -678,12 +684,71 @@ describe('Traverse functionality', () => {
 });
 
 describe('Extra methods', () => {
-  it.todo("filter()");
   it.todo("toArray()");
   it.todo("toArrays()");
   it.todo("toJSON()");
   it.todo("toSet()");
   it.todo("toMap()");
+
+  describe("filter()", () => {
+
+    it("filter() should be callable & return BTree", () => {
+      const btree = initBtree();
+
+      expect(btree.filter.constructor.name).toBe("Function");
+    });
+
+    it("filter() should return BTree", () => {
+      const btree = initBtree();
+
+      expect(btree.filter(() => true).constructor.name)
+        .toBe("BTree");
+    });
+
+    it("filter() should return all items", () => {
+      const btree = initBtree();
+
+      expect(btree.filter(() => true).size)
+        .toBe(3);
+    });
+
+    it("filter() should return 0 items", () => {
+      const btree = initBtree();
+
+      expect(btree.filter(() => false).size)
+        .toBe(0);
+    });
+
+    it("filter() callback should have first value arg", () => {
+      const btree = initBtree();
+
+      const it = initGenerator();
+
+      btree.filter((val) => {
+        expect(val).toBe(it.next().value.value);
+      });
+    });
+
+    it("filter() callback should have second key arg", () => {
+      const btree = initBtree();
+
+      const it = initGenerator();
+
+      btree.filter((_val, key) => {
+        expect(key).toBe(it.next().value.key);
+      });
+    });
+
+    it("filter() callback should have third idx arg", () => {
+      const btree = initBtree();
+
+      let i = 0;
+
+      btree.filter((_val, _key, idx) => {
+        expect(idx).toBe(i++);
+      });
+    });
+  });
 
   describe('reduce()', () => {
     it("reduce() should be callable & return valid value for numbers", () => {
