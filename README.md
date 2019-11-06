@@ -13,7 +13,7 @@ Node.js native Balanced Binary Tree implementation based on [GTree from GLib](ht
 Writen on C with [N-API](https://nodejs.org/dist/latest-v12.x/docs/api/n-api.html).
 
 Module implement Map interface: `set()`, `get()`, `has()`, etc.
-Has one additional property: `height` that store bTree height, and natively support map/reduce operations.
+Has one additional property: `height` that store bTree height, and natively support map/reduce/filter operations.
 
 ## Latest release changes
 

@@ -24,7 +24,7 @@ function initBtree() {
   return btree;
 }
 
-function *initGenerator() {
+function* initGenerator() {
   yield { key: "15", value: 150 };
   yield { key: "30", value: 30 };
   yield { key: "50", value: 50 };
@@ -692,7 +692,7 @@ describe('Extra methods', () => {
 
   describe("filter()", () => {
 
-    it("filter() should be callable & return BTree", () => {
+    it("filter() should be callable", () => {
       const btree = initBtree();
 
       expect(btree.filter.constructor.name).toBe("Function");
