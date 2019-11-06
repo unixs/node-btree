@@ -30,6 +30,20 @@ describe("Inheritance", () => {
 
     expect(btree).toBeInstanceOf(BTree);
   });
+
+  it("Create BTree instance without new", () => {
+    const btree = BTree(comparator);
+
+    expect(btree).toBeInstanceOf(BTree);
+  });
+
+  it('Constructor should throw error without arguments', () => {
+    expect(() => new BTree()).toThrow(MSG_TOO_FEW_ARGUMENTS);
+  });
+
+  it('Constructor call should throw error without arguments', () => {
+    expect(() => BTree()).toThrow(MSG_TOO_FEW_ARGUMENTS);
+  });
 });
 
 describe("Static methods", () => {

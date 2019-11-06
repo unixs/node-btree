@@ -878,7 +878,7 @@ static napi_value esReduce(napi_value env, napi_callback_info cbInfo) {
  * ES callback. Constructor
  */
 static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
-  napi_value esBtree;
+  napi_value esBtree, comparator, isConstructor;
   napi_ref ref;
 
   size_t argc = 1;
@@ -888,36 +888,53 @@ static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, false,
     napi_get_cb_info(env, cbInfo, &argc, argv, &esBtree, NULL));
 
-  // Allocate memory for usre data wich recived in native comparator
-  BTree_t *bTree = g_new(BTree_t, 1);
+  CHECK_ARGC(1, msgTooFewArguments);
+  comparator = argv[0];
 
-  // Initialize native BTree with native comparator & additional user data
-  // Key & Value is same pointer (ES object). Need free one of key or value.
-  GTree *nativeTree = g_tree_new_full(nativeComparator, bTree, NULL, freeTreeValue);
+  NAPI_CALL(env, true,
+    napi_get_new_target(env, cbInfo, &isConstructor));
 
-  // Check type of first argument. Must be function
-  napi_valuetype comparatorType;
-  NAPI_CALL(env, false,
-    napi_typeof(env, argv[0], &comparatorType));
-
-  if (comparatorType != napi_function) {
+  if (isConstructor) {
+    // Check type of first argument. Must be function
+    napi_valuetype comparatorType;
     NAPI_CALL(env, false,
-      napi_throw_error(env, NULL, "First arg must be comparator qsort() like function"));
+      napi_typeof(env, comparator, &comparatorType));
 
-      return NULL;
+    if (comparatorType != napi_function) {
+      NAPI_CALL(env, false,
+        napi_throw_error(env, NULL, "First arg must be comparator qsort() like function"));
+
+        return NULL;
+    }
+
+    // Allocate memory for usre data wich recived in native comparator
+    BTree_t *bTree = g_new(BTree_t, 1);
+
+    // Initialize native BTree with native comparator & additional user data
+    // Key & Value is same pointer (ES object). Need free one of key or value.
+    GTree *nativeTree = g_tree_new_full(nativeComparator, bTree, NULL, freeTreeValue);
+
+    // Fill user data
+    bTree->nativeTree = nativeTree;
+    bTree->env = env;
+
+    // Create ref on comparator function. Protect from GC
+    NAPI_CALL(env, false,
+      napi_create_reference(env, argv[0], 1, &bTree->comparator));
+
+    // Wrap native data in ES variable for native access again
+    NAPI_CALL(env, false,
+      napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, &ref));
   }
+  else {
+    napi_value constructorFunc;
 
-  // Fill user data
-  bTree->nativeTree = nativeTree;
-  bTree->env = env;
+    NAPI_CALL(env, true,
+      napi_get_reference_value(env, constructor, &constructorFunc));
 
-  // Create ref on comparator function. Protect from GC
-  NAPI_CALL(env, false,
-    napi_create_reference(env, argv[0], 1, &bTree->comparator));
-
-  // Wrap native data in ES variable for native access again
-  NAPI_CALL(env, false,
-    napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, &ref));
+    NAPI_CALL(env, true,
+      napi_new_instance(env, constructorFunc, argc, argv, &esBtree));
+  }
 
   return esBtree;
 }
