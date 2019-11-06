@@ -4,8 +4,7 @@
 
 [![Build Status](https://travis-ci.org/unixs/node-btree.svg?branch=master)](https://travis-ci.org/unixs/node-btree)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
-[![GitHub issues](https://github.com/unixs/node-btree/issues)](https://img.shields.io/github/issues-raw/unixs/node-btree)
-
+[![GitHub issues](https://img.shields.io/github/issues-raw/unixs/node-btree)](https://github.com/unixs/node-btree/issues)
 
 ## Brief
 
@@ -41,6 +40,10 @@ On Ubuntu GNU/Linux this packages must be installed:
 ## Usage
 
 ```js
+/**
+ * Basic
+ */
+
 const { BTree } = require("node-btree");
 
 function comparator(a, b) {
@@ -63,7 +66,6 @@ btree.set("15", 150);
 
 btree.get("15");
 // 150
-
 btree.has("30");
 // true
 
@@ -83,8 +85,48 @@ btree.reduce((acc, val) => acc + val, 0);
 
 btree.size;
 // 3
-
 btree.height;
 // 2
+
+/**
+ * From Map()
+ */
+
+const map = new Map();
+
+map.set(10, "10");
+map.set(30, "30");
+map.set(80, "80");
+map.set(20, "20");
+map.set(50, "50");
+
+const btree2 = BTree.from(comparator, map);
+
+btree.size;
+// 5
+btree.get(30);
+// "30"
+
+/**
+ * From iterable
+ */
+
+function* generator() {
+  for (let i = 0; i < 1000; i++) {
+    yield {
+      key: i,
+      value: `${i}`
+    };
+  }
+}
+
+const btree = BTree.from(comparator, generator());
+
+btree.size;
+// 1000
+btree.height;
+// 10
+btree.get(500);
+// "500"
 
 ```

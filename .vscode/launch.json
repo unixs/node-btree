@@ -10,6 +10,7 @@
       "request": "launch",
       "program": "/usr/bin/node",
       "args": [
+        "--expose-gc",
         "tmp/native_debug.js"
       ],
       "stopAtEntry": false,
@@ -30,7 +31,7 @@
       "request": "launch",
       "name": "Launch Program",
       "runtimeArgs": [
-        //"--expose-gc"
+        "--expose-gc"
       ],
       "program": "${workspaceFolder}/tmp/native_debug.js",
     },

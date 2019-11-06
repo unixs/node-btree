@@ -32,6 +32,138 @@ describe("Inheritance", () => {
   });
 });
 
+describe("Static methods", () => {
+
+  describe("BTree.from()", () => {
+    it("from() method should be", () => {
+      expect(BTree.from.constructor.name).toBe("Function");
+    });
+
+    it("from() method should return BTree instance", () => {
+      const btree = BTree.from(comparator, []);
+
+      expect(btree).toBeInstanceOf(BTree);
+      expect(btree.size).toBe(0);
+    });
+
+    it('from() should throw error without args', () => {
+      expect(() => BTree.from()).toThrow(MSG_TOO_FEW_ARGUMENTS);
+    });
+
+    it('from() should throw error if comparator is bad', () => {
+      expect(() => BTree.from([], []))
+        .toThrow("First arg must be comparator qsort() like function");
+    });
+
+    it('from() should throw error if second arg is bad', () => {
+      expect(() => BTree.from(comparator, ''))
+        .toThrow("Second arg must be Array, Map or iterable");
+    });
+
+    it("from() key-value-able objects array", () => {
+      const arr = [
+        {
+          key: 10,
+          value: "100",
+          a: "a"
+        },
+        {
+          key: 20,
+          value: "200",
+          b: "b"
+        },
+        {
+          key: 30,
+          value: "300",
+          c: "c"
+        }
+      ];
+
+      const btree = BTree.from(comparator, arr);
+
+      expect(btree.size).toBe(3);
+      expect(btree.height).toBe(2);
+      expect(btree.get(20)).toBe("200");
+    });
+
+    it('from() array of arrays [key, value]', () => {
+      const arr = [
+        [10, "10"],
+        [30, "30"],
+        [80, "80"],
+        [20, "20"],
+        [50, "50"]
+      ];
+
+      const btree = BTree.from(comparator, arr);
+
+      expect(btree.size).toBe(5);
+      expect(btree.height).toBe(3);
+      expect(btree.get(30)).toBe("30");
+    });
+
+    it('from() mixed array of arrays & objects', () => {
+      const arr = [
+        [10, "10"],
+        {
+          key: 30,
+          value: "30"
+        },
+        [80, "80"],
+        {
+          key: 20,
+          value: "20"
+        },
+        [50, "50"]
+      ];
+
+      const btree = BTree.from(comparator, arr);
+
+      expect(btree.size).toBe(5);
+      expect(btree.height).toBe(3);
+      expect(btree.get(30)).toBe("30");
+      expect(btree.get(50)).toBe("50");
+    });
+
+    it('from() generator', () => {
+
+      function* generator() {
+        for (let i = 0; i < 1000; i++) {
+          yield {
+            key: i,
+            value: `${i} bla-bla-bla`
+          };
+        }
+      }
+
+      const btree = BTree.from(comparator, generator());
+
+      expect(btree.size).toBe(1000);
+      expect(btree.height).toBe(10);
+      expect(btree.get(30)).toBe("30 bla-bla-bla");
+      expect(btree.get(50)).toBe("50 bla-bla-bla");
+    });
+
+    // Temporary skipped
+    // BUG: https://github.com/facebook/jest/issues/2549
+    it.skip('from() Map instance', () => {
+      const map = new Map();
+
+      map.set(10, "10");
+      map.set(30, "30");
+      map.set(80, "80");
+      map.set(20, "20");
+      map.set(50, "50");
+
+      const btree = BTree.from(comparator, map);
+
+      expect(btree.size).toBe(5);
+      expect(btree.height).toBe(3);
+      expect(btree.get(30)).toBe("30");
+    });
+  });
+});
+
 describe("Base functionality", () => {
 
   describe("BTree specific", () => {
@@ -64,15 +196,10 @@ describe("Base functionality", () => {
       expect(btree.size).toBe(3);
     });
 
-    it('get method should throw exception without args', () => {
-      const btree = initBtree();
+    it('get method should be callable without args', () => {
+      const btree = new BTree(comparator);
 
-      try {
-        btree.get();
-      }
-      catch (e) {
-        expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
-      }
+      expect(btree.get()).toBe(undefined);
     });
 
     it("Check get method (number => string)", () => {
@@ -96,17 +223,6 @@ describe("Base functionality", () => {
 
       expect(btree.get("15")).toBe(150);
     });
-
-    it('Check set() method', () => {
-      const btree = new BTree(comparator);
-
-      btree.set("key", 10);
-      btree.set(20, "value");
-
-      expect(btree.get(20)).toBe("value");
-      // expect(btree.get("key")).toBe(10);
-    });
-
     it('Should be addable if key exists', () => {
       const btree = initBtree();
 
@@ -390,18 +506,10 @@ describe('Traverse functionality', () => {
         });
       });
 
-      it('forEach() should throw error if few arguments', (done) => {
+      it('forEach() should throw error if few arguments', () => {
         const btree = initBtree();
 
-        try {
-          btree.forEach();
-
-          done.fail("Should throw error.");
-        }
-        catch (e) {
-          expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
-          done();
-        }
+        expect(() => btree.forEach()).toThrow(MSG_TOO_FEW_ARGUMENTS);
       });
 
     });
@@ -559,8 +667,9 @@ describe('Extra methods', () => {
   it.todo("filter()");
   it.todo("toArray()");
   it.todo("toArrays()");
-  it.todo("toObject()");
   it.todo("toJSON()");
+  it.todo("toSet()");
+  it.todo("toMap()");
 
   describe('reduce()', () => {
     it("reduce() should be callable & return valid value for numbers", () => {
@@ -623,18 +732,11 @@ describe('Extra methods', () => {
       expect(result.get("15")).toBe(150);
     });
 
-    it('reduce() should throw error if few arguments', (done) => {
+    it('reduce() should throw error if few arguments', () => {
       const btree = initBtree();
 
-      try {
-        btree.reduce((acc, val) => val);
 
-        done.fail("Should throw error.");
-      }
-      catch (e) {
-        expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
-        done();
-      }
+      expect(() => btree.reduce((acc, val) => val)).toThrow(MSG_TOO_FEW_ARGUMENTS);
     });
 
   });
@@ -737,18 +839,10 @@ describe('Extra methods', () => {
       });
     });
 
-    it('map() should throw error if few arguments', (done) => {
+    it('map() should throw error if few arguments', () => {
       const btree = initBtree();
 
-      try {
-        btree.map();
-
-        done.fail("Should throw error.");
-      }
-      catch (e) {
-        expect(e.message).toBe(MSG_TOO_FEW_ARGUMENTS);
-        done();
-      }
+      expect(() => btree.map()).toThrow(MSG_TOO_FEW_ARGUMENTS);
     });
 
   });

@@ -57,3 +57,6 @@ NAPI_CALL(((BTreeNode) node)->bTree->env, false,                               \
   napi_delete_reference(((BTreeNode) node)->bTree->env,                        \
     ((BTreeNode) node)->esKeyValue));                                          \
 g_free((gpointer) node);
+
+#define KEY "key"
+#define VALUE "value"
