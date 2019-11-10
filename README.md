@@ -19,6 +19,10 @@ Has one additional property: `height` that store bTree height, and natively supp
 
 See: [CHANGELOG.md](https://github.com/unixs/node-btree/blob/master/CHANGELOG.md)
 
+## Documentation
+
+See [GitHub Wiki](https://github.com/unixs/node-btree/wiki/API)
+
 ## Limitations
 
 * Same as GTree:

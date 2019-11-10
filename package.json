@@ -1,12 +1,14 @@
 {
   "name": "node-btree",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Native binary tree implementation baseb on GLib Balanced Binary Trees (GTree) for Node.js",
   "main": "./lib/index",
+
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
     "test": "jest -c test/config/jest.config.js"
   },
+
   "binary": {
     "module_name": "node_btree",
     "module_path": "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
@@ -14,6 +16,9 @@
     "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
     "host": "https://npm-node-btree.s3.amazonaws.com"
   },
+
+
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unixs/node-btree.git"
