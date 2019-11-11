@@ -8,7 +8,7 @@
 
 ## Brief
 
-Node.js native Balanced Binary Tree implementation based on [GTree from GLib](https://developer.gnome.org/glib/stable/glib-Balanced-Binary-Trees.html#g-tree-remove).
+Node.js native Balanced Binary Tree implementation based on [GTree from GLib](https://developer.gnome.org/glib/stable/glib-Balanced-Binary-Trees.html).
 
 Writen on C with [N-API](https://nodejs.org/dist/latest-v12.x/docs/api/n-api.html).
 
@@ -21,7 +21,7 @@ See: [CHANGELOG.md](https://github.com/unixs/node-btree/blob/master/CHANGELOG.md
 
 ## Documentation
 
-See [GitHub Wiki](https://github.com/unixs/node-btree/wiki/API)
+See: [GitHub Wiki](https://github.com/unixs/node-btree/wiki/API)
 
 ## Limitations
 
