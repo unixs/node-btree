@@ -1,4 +1,5 @@
 const { BTree } = require("../lib");
+//const { BTree } = require("../lib/binding/Debug/node-v72-linux-x64/node_btree.node");
 
 const MSG_TOO_FEW_ARGUMENTS = "Too few arguments.";
 
@@ -30,7 +31,15 @@ function* initGenerator() {
   yield { key: "50", value: 50 };
 }
 
+/*
+afterAll(() => {
+  console.log("After all.");
+  global.gc();
+});
+*/
+
 describe("Inheritance", () => {
+
   it("Create BTree instance", () => {
     const btree = new BTree(comparator);
 
@@ -55,6 +64,7 @@ describe("Inheritance", () => {
 describe("Static methods", () => {
 
   describe("BTree.from()", () => {
+
     it("from() method should be", () => {
       expect(BTree.from.constructor.name).toBe("Function");
     });
@@ -79,6 +89,7 @@ describe("Static methods", () => {
       expect(() => BTree.from(comparator, ''))
         .toThrow("Second arg must be Array, Map or iterable");
     });
+
 
     it("from() key-value-able objects array", () => {
       const arr = [

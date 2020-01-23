@@ -27,6 +27,33 @@
       ]
     },
     {
+      "name": "(gdb) Jest",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/usr/bin/node",
+      "args": [
+        "--expose-gc",
+        "node_modules/.bin/jest",
+        "-c",
+        "test/config/jest.config.js"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "sourceFileMap": {
+        //"<source-path>": "<target-path>"
+      },
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
@@ -40,7 +67,7 @@
       "request": "launch",
       "name": "Jest All",
       "program": "${workspaceFolder}/node_modules/.bin/jest",
-      "args": ["--runInBand"],
+      // "args": ["--runInBand"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "disableOptimisticBPs": true,

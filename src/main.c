@@ -173,7 +173,6 @@ static void freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hi
   // Unref comparator function for GC access
   NAPI_CALL(env, false,
     napi_delete_reference(env, bTree->comparator));
-
   // Destroy native bTree & release memory
   g_tree_destroy(bTree->nativeTree);
 
@@ -776,9 +775,8 @@ static napi_value esGenerator(napi_env env, napi_callback_info cbInfo) {
   itCtxt->state = ITERATOR_INIT;
 
   // Attach native data (context) to es value (iterator)
-  napi_ref ref;
   NAPI_CALL(env, false,
-    napi_wrap(env, esIterator, (void *) itCtxt, freeIterator, NULL, &ref));
+    napi_wrap(env, esIterator, (void *) itCtxt, freeIterator, NULL, NULL));
 
   return esIterator;
 }
@@ -1000,7 +998,6 @@ static napi_value esFilter(napi_value env, napi_callback_info cbInfo) {
  */
 static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
   napi_value esBtree, comparator, isConstructor;
-  napi_ref ref;
 
   size_t argc = 1;
   napi_value argv[1];
@@ -1045,7 +1042,7 @@ static napi_value esConstructor(napi_env env, napi_callback_info cbInfo) {
 
     // Wrap native data in ES variable for native access again
     NAPI_CALL(env, false,
-      napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, &ref));
+      napi_wrap(env, esBtree, bTree, freeNativeBTree, NULL, NULL));
   }
   else {
     napi_value constructorFunc;
@@ -1119,15 +1116,15 @@ static void iterate(napi_env env, napi_value iterable, iteratorResultCallback ca
       napi_get_named_property(env, result, "done", &done));
 
     NAPI_CALL(env, true,
-      napi_get_named_property(env, result, VALUE, &value));
-
-    NAPI_CALL(env, true,
       napi_get_value_bool(env, done, &isDone));
 
-    NAPI_CALL(env, true,
-      napi_is_array(env, value, &valueIsArray));
-
     if (!isDone) {
+      NAPI_CALL(env, true,
+        napi_get_named_property(env, result, VALUE, &value));
+
+      NAPI_CALL(env, true,
+        napi_is_array(env, value, &valueIsArray));
+
       ctxt->cbThis = value;
       ctxt->data = (void *) valueIsArray;
 
@@ -1182,6 +1179,13 @@ static napi_value esStaticFrom(napi_env env, napi_callback_info cbInfo) {
   NAPI_CALL(env, true,
     napi_new_instance(env, BTreeConstructor, 1, &comparator, &result));
 
+  bool isPending;
+  NAPI_CALL(env, true,
+    napi_is_exception_pending(env, &isPending));
+
+  if (isPending) {
+    return NULL;
+  }
 
   bool isArray = false;
   bool isMap = false;
