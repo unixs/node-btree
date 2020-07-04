@@ -699,7 +699,13 @@ describe('Extra methods', () => {
   it.todo("toArrays()");
   it.todo("toJSON()");
   it.todo("toSet()");
-  it.todo("toMap()");
+  describe("toMap()", () => {
+    it("toMap() should be callable", () => {
+      const btree = initBtree();
+
+      expect(btree.toMap.constructor.name).toBe("Function");
+    });
+  });
 
   describe("filter()", () => {
 

@@ -5,7 +5,10 @@
     {
       "target_name": "<(module_name)",
       "sources": [
-        "src/main.c"
+        "src/init.c"
+      ],
+      'include_dirs': [
+        "src/include"
       ],
       'conditions': [
         ['OS == "linux"', {
