@@ -7,8 +7,8 @@
 #include "utils.h"
 
 
-extern const char *msgTooFewArguments = "Too few arguments.";
-extern const char *msgCorrupt = "BTree corrupt. Next node expected but it is null.";
+extern const char *msgTooFewArguments;
+extern const char *msgCorrupt;
 
 /**
  * Context for native bTree

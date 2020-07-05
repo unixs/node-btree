@@ -1,3 +1,6 @@
+#ifndef __ITERATORS_H_
+#define __ITERATORS_H_
+
 #include "common.h"
 #include "glib_local.h"
 #include "utils.h"
@@ -35,6 +38,8 @@ typedef struct {
   void *data;
 } ForEachContext_t;
 
+typedef void (*forEachCallback)(ForEachContext_t *ctxt);
+
 /**
  * Native callback for generic operations
  */
@@ -47,3 +52,6 @@ napi_value esGenerator(napi_env env, napi_callback_info cbInfo);
 void iteratorResultDefaultCb(IteratorContext_t *ctxt);
 void iteratorResultValueCb(IteratorContext_t *ctxt);
 void iteratorResultKeyCb(IteratorContext_t *ctxt);
+
+
+#endif // __ITERATORS_H_

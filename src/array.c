@@ -1,5 +1,5 @@
 #include "array.h"
-
+#include "iterators.h"
 
 static gboolean nativeBTreeFilter(gpointer key, gpointer value, gpointer data) {
   BTreeNode node = (BTreeNode) value;
@@ -170,14 +170,13 @@ static gboolean nativeBTreeMap(gpointer key, gpointer value, gpointer data) {
 }
 
 
-napi_value esMap(napi_value env, napi_callback_info cbInfo) {
+napi_value esMap(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, array, callback, cbThis, argv[2];
   BTree_t *bTree;
   size_t argc = 2;
 
   // Get es this for current btree
-  NAPI_CALL(env, false,
-    napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+  NAPI_CALL(env, false, napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
 
   // Extract native BTree pointer
   EXTRACT_BTREE(env, esThis, bTree);
@@ -212,8 +211,8 @@ napi_value esMap(napi_value env, napi_callback_info cbInfo) {
   return array;
 }
 
-napi_value esReduce(napi_value env, napi_callback_info cbInfo) {
-  napi_value esThis, array, callback, accumulator, cbThis, argv[2];
+napi_value esReduce(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis, callback, accumulator, cbThis, argv[2];
   BTree_t *bTree;
   size_t argc = 2;
 
@@ -245,8 +244,8 @@ napi_value esReduce(napi_value env, napi_callback_info cbInfo) {
   return (napi_value) ctxt.data;
 }
 
-napi_value esFilter(napi_value env, napi_callback_info cbInfo) {
-  napi_value esThis, array, callback, accumulator, cbThis, argv[2];
+napi_value esFilter(napi_env env, napi_callback_info cbInfo) {
+  napi_value esThis, callback, accumulator, cbThis, argv[2];
   BTree_t *bTree;
   size_t argc = 2;
 

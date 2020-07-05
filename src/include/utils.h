@@ -51,6 +51,8 @@
 #define __NAPI_CALL_ERROR_RETURN(flag) __NAPI_CALL_ERROR_RETURN_##flag
 #define __NAPI_CALL_ERROR_RETURN_1 return NULL
 #define __NAPI_CALL_ERROR_RETURN_0
+#define __NAPI_CALL_ERROR_RETURN_2 return
+#define VOID_ON_FAIL 2
 
 #define NAPI_CALL(env, ret, call)                                 \
   do                                                              \

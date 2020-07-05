@@ -1,5 +1,8 @@
 #include "common.h"
 
+extern const char *msgTooFewArguments = "Too few arguments.";
+extern const char *msgCorrupt = "BTree corrupt. Next node expected but it is null.";
+
 void nativeInsertNode(napi_env env, napi_value esBtree, napi_value box) {
   BTree_t *bTree;
 

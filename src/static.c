@@ -8,45 +8,45 @@ static void fromArrayCallback(ForEachContext_t *ctxt) {
   bool valueIsArray = (bool) ctxt->data;
 
   if (valueIsArray) {
-    NAPI_CALL(env, true,
+    NAPI_CALL(env, VOID_ON_FAIL,
       napi_get_element(env, ctxt->cbThis, 0, &key));
 
-    NAPI_CALL(env, true,
+    NAPI_CALL(env, VOID_ON_FAIL,
       napi_get_element(env, ctxt->cbThis, 1, &value));
   }
   // Is Object
   else {
-    NAPI_CALL(env, true,
+    NAPI_CALL(env, VOID_ON_FAIL,
       napi_get_named_property(env, ctxt->cbThis, KEY, &key));
 
-    NAPI_CALL(env, true,
+    NAPI_CALL(env, VOID_ON_FAIL,
       napi_get_named_property(env, ctxt->cbThis, VALUE, &value));
   }
 
-  NAPI_CALL(env, true,
+  NAPI_CALL(env, VOID_ON_FAIL,
     napi_create_object(env, &box));
 
-  NAPI_CALL(env, true,
+  NAPI_CALL(env, VOID_ON_FAIL,
     napi_set_named_property(env, box, KEY, key));
 
-  NAPI_CALL(env, true,
+  NAPI_CALL(env, VOID_ON_FAIL,
     napi_set_named_property(env, box, VALUE, value));
 
   nativeInsertNode(env, ctxt->esbTree, box);
 }
 
-static void iterableIterate(napi_env env, napi_value iterable, iteratorResultCallback callback, ForEachContext_t *ctxt) {
+static void iterableIterate(napi_env env, napi_value iterable, forEachCallback callback, ForEachContext_t *ctxt) {
   napi_value generator, SymbolIterator, iterator, next;
 
   NAPI_GLOBAL_SYM(env, "iterator", SymbolIterator);
 
-  NAPI_CALL(env, true,
+  NAPI_CALL(env, VOID_ON_FAIL,
     napi_get_property(env, iterable,SymbolIterator, &generator));
 
-  NAPI_CALL(env, true,
+  NAPI_CALL(env, VOID_ON_FAIL,
     napi_call_function(env, iterable, generator, 0, NULL, &iterator));
 
-  NAPI_CALL(env, true,
+  NAPI_CALL(env, VOID_ON_FAIL,
     napi_get_named_property(env, iterator, "next", &next));
 
   bool isDone = true;
@@ -54,20 +54,20 @@ static void iterableIterate(napi_env env, napi_value iterable, iteratorResultCal
   napi_value result, value, done;
 
   do {
-    NAPI_CALL(env, true,
+    NAPI_CALL(env, VOID_ON_FAIL,
       napi_call_function(env, iterator, next, 0, NULL, &result));
 
-    NAPI_CALL(env, true,
+    NAPI_CALL(env, VOID_ON_FAIL,
       napi_get_named_property(env, result, "done", &done));
 
-    NAPI_CALL(env, true,
+    NAPI_CALL(env, VOID_ON_FAIL,
       napi_get_value_bool(env, done, &isDone));
 
     if (!isDone) {
-      NAPI_CALL(env, true,
+      NAPI_CALL(env, VOID_ON_FAIL,
         napi_get_named_property(env, result, VALUE, &value));
 
-      NAPI_CALL(env, true,
+      NAPI_CALL(env, VOID_ON_FAIL,
         napi_is_array(env, value, &valueIsArray));
 
       ctxt->cbThis = value;
@@ -106,7 +106,6 @@ static void fromKeyValueIterable(napi_env env, napi_value iterable, napi_value e
 napi_value esStaticFrom(napi_env env, napi_callback_info cbInfo) {
   napi_value result, BTreeConstructor, argv[2];
   napi_value global, Map;
-  napi_valuetype iterableType;
   size_t argc = 2;
 
   // Get es arguments & context
