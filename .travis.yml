@@ -15,6 +15,7 @@ cache:
   directories:
   - "$HOME/.npm"
 
+#
 before_install:
 - |-
     case $TRAVIS_OS_NAME in
