@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * toObject()
 * toJSON()
 
+## [0.5.3] - 2020-07-05
+
+### Changed
+
+* C code was splitted  in to separate files
+
 ## [0.5.2] - 2020-01-23
 
 ### Added
