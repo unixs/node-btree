@@ -10,7 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * toArray()
 * toArrays()
 * toObject()
-* toJSON()
+
+## [0.6.0] - 2020-07-05
+
+### Changed
+
+* Small refactoring
+
+### Added
+
+* toMap()
+* toSet()
 
 ## [0.5.3] - 2020-07-05
 
