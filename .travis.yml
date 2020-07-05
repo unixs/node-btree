@@ -1,12 +1,23 @@
-dist: bionic
 language: node_js
+
+jobs:
+  include:
+    - os: linux
+      dist: xenial
+    - os: linux
+      dist: trusty
+    - os: linux
+      dist: bionic
+    - os: osx
+      osx_image: xcode7.2
 
 node_js:
   - 10
-  - 12
-  - 14
 
 cache:
   directories:
   - "$HOME/.npm"
 
+before_install:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update      ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install glib; fi
