@@ -1,5 +1,5 @@
-//const { BTree } = require("../lib");
-const { BTree } = require("../lib/binding/Debug/node-v83-linux-x64/node_btree.node");
+const { BTree } = require("../lib");
+// const { BTree } = require("../lib/binding/Debug/node-v83-linux-x64/node_btree.node");
 
 const MSG_TOO_FEW_ARGUMENTS = "Too few arguments.";
 
