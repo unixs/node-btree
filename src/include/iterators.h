@@ -35,7 +35,7 @@ typedef struct {
   napi_value cbThis;
   size_t idx;
   BTree_t *bTree;
-  void *data;
+  gpointer data;
 } ForEachContext_t;
 
 typedef void (*forEachCallback)(ForEachContext_t *ctxt);

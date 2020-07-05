@@ -34,7 +34,8 @@ static napi_value init(napi_env env, napi_value exports) {
     DEF_METHOD_WITH_DATA("keys", esGenerator, (void *) iteratorResultKeyCb),
 
     // Extra methods
-    DEF_METHOD("toMap", esToMap)
+    DEF_METHOD("toMap", esToMap),
+    DEF_METHOD("toSet", esToSet)
   };
 
   // Static props
