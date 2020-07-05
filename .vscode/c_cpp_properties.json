@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/src/include/**",
+                "${workspaceFolder}/src/include/*",
                 "/usr/include/node",
                 "/usr/include",
                 "/usr/include/glib-2.0",

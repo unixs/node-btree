@@ -1,21 +1,43 @@
 {
   # NOTE: 'module_name' and 'module_path' come from the 'binary' property in package.json
   # node-pre-gyp handles passing them down to node-gyp when you build from source
+  "target_defaults": {
+    "include_dirs": [
+      "src/include"
+    ]
+  },
   "targets": [
+    {
+      "target_name": "glib",
+      "type": "none",
+      "direct_dependent_settings": {
+        'conditions': [
+          ['OS == "linux"', {
+            "include_dirs": [
+              '<!@(pkg-config --cflags glib-2.0 | sed s/-I//g)'
+            ],
+            "libraries": [
+              '<!@(pkg-config glib-2.0 --libs)'
+            ]
+          }]
+        ]
+      }
+    },
     {
       "target_name": "<(module_name)",
       "sources": [
-        "src/main.c"
+        "src/constructor.c",
+        "src/common.c",
+        "src/array.c",
+        "src/map.c",
+        "src/specific.c",
+        "src/static.c",
+        "src/iterators.c",
+        "src/extra.c",
+        "src/init.c"
       ],
-      'conditions': [
-        ['OS == "linux"', {
-          "include_dirs": [
-            '<!@(pkg-config --cflags glib-2.0 | sed s/-I//g)'
-          ],
-          "libraries": [
-            '<!@(pkg-config glib-2.0 --libs)'
-          ]
-        }]
+      "dependencies": [
+        "glib",
       ],
     },
     {

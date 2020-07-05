@@ -1,62 +1,46 @@
-#define __NAPI_CALL_ERROR_RETURN(flag) __NAPI_CALL_ERROR_RETURN_##flag
-#define __NAPI_CALL_ERROR_RETURN_1 return NULL
-#define __NAPI_CALL_ERROR_RETURN_0
+#include <node_api.h>
+#include <glib.h>
 
-#define NAPI_CALL(env, ret, call)                                              \
-  do {                                                                         \
-    napi_status status = (call);                                               \
-    if (status != napi_ok) {                                                   \
-      const napi_extended_error_info *error_info = NULL;                       \
-      napi_get_last_error_info((env), &error_info);                            \
-      bool is_pending;                                                         \
-      napi_is_exception_pending((env), &is_pending);                           \
-      if (!is_pending) {                                                       \
-        const char *message = (error_info->error_message == NULL)              \
-                                  ? "empty error message"                      \
-                                  : error_info->error_message;                 \
-        napi_throw_error((env), NULL, message);                                \
-        __NAPI_CALL_ERROR_RETURN(ret);                                         \
-      }                                                                        \
-    }                                                                          \
-  } while (0)
+#ifndef _COMMON_H_
+#define _COMMON_H_
 
-#define CHECK_ARGC(expected, msg)                                              \
-  if (argc < expected) {                                                       \
-    NAPI_CALL(env, false,                                                      \
-      napi_throw_error(env, NULL, msg));                                       \
-      return NULL;                                                             \
-  }
+#include "utils.h"
 
-#define EXTRACT_BTREE(env, this, ptr)\
-  NAPI_CALL(env, false, napi_unwrap(env, this, (void **) &ptr));
+
+extern const char *msgTooFewArguments;
+extern const char *msgCorrupt;
+
+// Cached ES constructor
+extern napi_ref constructor;
 
 /**
- * Get globas ES Symbol
+ * Context for native bTree
  */
-#define NAPI_GLOBAL_SYM(env, name, napiVar)                                    \
-{                                                                              \
-  napi_value global, Symbol;                                                   \
-  NAPI_CALL(env, false, napi_get_global(env, &global));                        \
-  NAPI_CALL(env, false, napi_get_named_property(env, global, "Symbol", &Symbol)); \
-  NAPI_CALL(env, false, napi_get_named_property(env, Symbol, name, &napiVar)); \
-}
+typedef struct
+{
+  // Node runtime environment
+  napi_env env;
+  //  ES comparator passed form constructor
+  napi_ref comparator;
+  // GLib Binary Tree
+  GTree *nativeTree;
+} BTree_t;
 
 /**
- * Allocate memory for & initialize new node
+ * bTree Node
+ *
+ * Save pointer to self tree & kay-value pair ES Object
  */
-#define NEW_NODE(ptr, bTree, ref)                                              \
-ptr = g_new(BTreeNode_t, 1);                                                   \
-ptr->bTree = bTree;                                                            \
-ptr->esKeyValue = ref;                                                         \
+typedef struct {
+  // Ref to ES value
+  napi_ref esKeyValue;
+  // Pointer to self tree
+  BTree_t *bTree;
+} BTreeNode_t;
 
-/**
- * Free node
- */
-#define FREE_NODE(node)                                                        \
-NAPI_CALL(((BTreeNode) node)->bTree->env, false,                               \
-  napi_delete_reference(((BTreeNode) node)->bTree->env,                        \
-    ((BTreeNode) node)->esKeyValue));                                          \
-g_free((gpointer) node);
+// Type alias for tree node
+typedef BTreeNode_t* BTreeNode;
 
-#define KEY "key"
-#define VALUE "value"
+void nativeInsertNode(napi_env env, napi_value esBtree, napi_value box);
+
+#endif //_COMMON_H_

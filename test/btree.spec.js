@@ -1,5 +1,5 @@
-const { BTree } = require("../lib");
-//const { BTree } = require("../lib/binding/Debug/node-v72-linux-x64/node_btree.node");
+//const { BTree } = require("../lib");
+const { BTree } = require("../lib/binding/Debug/node-v83-linux-x64/node_btree.node");
 
 const MSG_TOO_FEW_ARGUMENTS = "Too few arguments.";
 
@@ -699,7 +699,13 @@ describe('Extra methods', () => {
   it.todo("toArrays()");
   it.todo("toJSON()");
   it.todo("toSet()");
-  it.todo("toMap()");
+  describe("toMap()", () => {
+    it("toMap() should be callable", () => {
+      const btree = initBtree();
+
+      expect(btree.toMap.constructor.name).toBe("Function");
+    });
+  });
 
   describe("filter()", () => {
 

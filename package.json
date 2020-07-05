@@ -45,14 +45,14 @@
     "!win32"
   ],
   "dependencies": {
-    "node-pre-gyp": "~0.14.0"
+    "node-pre-gyp": "~0.15.0"
   },
   "devDependencies": {
-    "@types/jest": "~24",
+    "@types/jest": "~25",
     "@types/node": "~12",
-    "aws-sdk": "~2.566.0",
-    "eslint": "~6",
+    "aws-sdk": "~2.686.0",
+    "eslint": "~7",
     "eslint-plugin-jest": "~23",
-    "jest": "~24"
+    "jest": "~26"
   }
 }
