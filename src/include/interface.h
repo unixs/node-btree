@@ -1,3 +1,4 @@
+#include "common.h"
 #include "constructor.h"
 #include "specific.h"
 #include "map.h"

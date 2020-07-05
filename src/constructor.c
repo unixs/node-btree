@@ -1,5 +1,6 @@
 #include "constructor.h"
 
+napi_ref constructor;
 
 /**
  * Free allocated GTree & unref comparator for GC access

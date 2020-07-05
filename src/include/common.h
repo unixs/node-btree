@@ -10,6 +10,9 @@
 extern const char *msgTooFewArguments;
 extern const char *msgCorrupt;
 
+// Cached ES constructor
+extern napi_ref constructor;
+
 /**
  * Context for native bTree
  */
@@ -37,10 +40,6 @@ typedef struct {
 
 // Type alias for tree node
 typedef BTreeNode_t* BTreeNode;
-
-
-// Cached ES constructor
-extern napi_ref constructor;
 
 void nativeInsertNode(napi_env env, napi_value esBtree, napi_value box);
 
