@@ -12,7 +12,7 @@
       "type": "none",
       "direct_dependent_settings": {
         'conditions': [
-          ['OS == "linux"', {
+          ['OS != "win"', {
             "include_dirs": [
               '<!@(pkg-config --cflags glib-2.0 | sed s/-I//g)'
             ],
