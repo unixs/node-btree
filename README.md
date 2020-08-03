@@ -3,6 +3,7 @@
 [![NPM](https://nodei.co/npm/node-btree.png?compact=true)](https://nodei.co/npm/node-btree/)
 
 [![Build Status](https://travis-ci.org/unixs/node-btree.svg?branch=master)](https://travis-ci.org/unixs/node-btree)
+[![Node.js CI](https://github.com/unixs/node-btree/workflows/Node.js%20CI/badge.svg)](https://github.com/unixs/node-btree/actions) 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![GitHub issues](https://img.shields.io/github/issues-raw/unixs/node-btree)](https://github.com/unixs/node-btree/issues)
 
