@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * toArrays()
 * toObject()
 
+## [0.6.1] - 2022-02-05
+
+### Changed
+
+* Dependencies updates
+
 ## [0.6.0] - 2020-07-05
 
 ### Changed
