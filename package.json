@@ -54,5 +54,8 @@
     "eslint": "~8",
     "eslint-plugin-jest": "~26",
     "jest": "~27"
+  },
+  "optionalDependencies": {
+    "fsevents": "~2"
   }
 }
