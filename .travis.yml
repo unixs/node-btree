@@ -5,14 +5,17 @@ jobs:
     -
       os: linux
       dist: focal
+      node_js:
+        - 12
+        - 14
+        - 16
     -
       os: osx
       osx_image: xcode13.3
-
-node_js:
-  - 12
-  - 14
-  - 16
+      node_js:
+        - 12
+        - 14
+        - 16
 
 cache:
   directories:
