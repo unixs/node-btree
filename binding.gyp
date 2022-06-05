@@ -12,14 +12,16 @@
       "type": "none",
       "direct_dependent_settings": {
         'conditions': [
-          ['OS == "linux"', {
-            "include_dirs": [
-              '<!@(pkg-config --cflags glib-2.0 | sed s/-I//g)'
-            ],
-            "libraries": [
-              '<!@(pkg-config glib-2.0 --libs)'
-            ]
-          }]
+          [
+            'OS != "win"', {
+              "include_dirs": [
+                '<!@(pkg-config --cflags glib-2.0 | sed s/-I//g)'
+              ],
+              "libraries": [
+                '<!@(pkg-config glib-2.0 --libs)'
+              ]
+            }
+          ]
         ]
       }
     },
