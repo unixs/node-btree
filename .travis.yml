@@ -1,5 +1,13 @@
-dist: focal
 language: node_js
+
+jobs:
+  include:
+    -
+      os: linux
+      dist: focal
+    -
+      os: osx
+      osx_image: xcode13.3
 
 node_js:
   - 12
