@@ -1,21 +1,13 @@
 language: node_js
 
-jobs:
-  include:
-    -
-      os: linux
-      dist: focal
-      node_js:
-        - 12
-        - 14
-        - 16
-    -
-      os: osx
-      osx_image: xcode13.3
-      node_js:
-        - 12
-        - 14
-        - 16
+os:
+  - linux
+  - osx
+
+node_js:
+  - 12
+  - 14
+  - 16
 
 cache:
   directories:
