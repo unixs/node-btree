@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * toArrays()
 * toObject()
 
+## [0.6.2] - 2022-06-06
+
+### Changed
+
+* MacOS building was enabled
+
 ## [0.6.1] - 2022-02-05
 
 ### Changed
