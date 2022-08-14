@@ -30,7 +30,7 @@
       "name": "(gdb) Jest",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/usr/bin/node",
+      "program": "/usr/local/bin/node",
       "args": [
         "--expose-gc",
         "node_modules/.bin/jest",
@@ -41,7 +41,7 @@
       "cwd": "${workspaceFolder}",
       "environment": [],
       "externalConsole": false,
-      "MIMode": "gdb",
+      "MIMode": "lldb",
       "sourceFileMap": {
         //"<source-path>": "<target-path>"
       },

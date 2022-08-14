@@ -1,4 +1,4 @@
-#include "common.h"
+#include <common.h>
 
 napi_value esSet(napi_env env, napi_callback_info cbInfo);
 napi_value esGet(napi_env env, napi_callback_info cbInfo);

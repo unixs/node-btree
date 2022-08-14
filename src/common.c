@@ -1,4 +1,4 @@
-#include "common.h"
+#include <common.h>
 
 extern const char *msgTooFewArguments = "Too few arguments.";
 extern const char *msgCorrupt = "BTree corrupt. Next node expected but it is null.";

@@ -4,15 +4,8 @@
   "description": "Native binary tree implementation baseb on GLib Balanced Binary Trees (GTree) for Node.js",
   "main": "./lib/index",
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
+    "install": "ncmake rebuild",
     "test": "jest -c test/config/jest.config.js"
-  },
-  "binary": {
-    "module_name": "node_btree",
-    "module_path": "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
-    "remote_path": "./{module_name}/v{version}/{configuration}/",
-    "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
-    "host": "https://npm-node-btree.s3.amazonaws.com"
   },
   "repository": {
     "type": "git",
@@ -45,15 +38,14 @@
     "!win32"
   ],
   "dependencies": {
-    "@mapbox/node-pre-gyp": "~1.0"
+    "node-cmake": "~2.5.1"
   },
   "devDependencies": {
     "@types/jest": "~27",
     "@types/node": "~16",
-    "aws-sdk": "~2",
     "eslint": "~8",
     "eslint-plugin-jest": "~26",
-    "jest": "~27"
+    "jest": "~28"
   },
   "optionalDependencies": {
     "fsevents": "~2"
