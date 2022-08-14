@@ -2,19 +2,17 @@
 
 [![NPM](https://nodei.co/npm/node-btree.png?compact=true)](https://nodei.co/npm/node-btree/)
 
-[![Build Status](https://travis-ci.org/unixs/node-btree.svg?branch=master)](https://travis-ci.org/unixs/node-btree)
 [![Node.js CI](https://github.com/unixs/node-btree/workflows/Node.js%20CI/badge.svg)](https://github.com/unixs/node-btree/actions)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![GitHub issues](https://img.shields.io/github/issues-raw/unixs/node-btree)](https://github.com/unixs/node-btree/issues)
 
 ## Brief
 
-Node.js native Balanced Binary Tree implementation based on [GTree from GLib](https://developer.gnome.org/glib/stable/glib-Balanced-Binary-Trees.html).
+Node.js native Balanced Binary Tree bindings to [GTree from GLib](https://docs.gtk.org/glib/struct.Tree.html).
 
 Writen on C with [N-API](https://nodejs.org/dist/latest-v12.x/docs/api/n-api.html).
-
-Module implement Map interface: `set()`, `get()`, `has()`, etc.
-Has one additional property: `height` that store bTree height, and natively support map/reduce/filter operations.
+The module implements Map interface: `set()`, `get()`, `has()`, etc.
+It has one additional property: `height` that store bTree height, and natively support map/reduce/filter operations.
 
 ## Latest release changes
 
@@ -26,23 +24,31 @@ See: [GitHub Wiki](https://github.com/unixs/node-btree/wiki/API)
 
 ## Limitations
 
+* **All methods will compiled for GLIB version >= 2.68 only!**
+
 * Same as GTree:
 
 > The tree may not be modified while iterating over it (you can't add/remove items).
 
-* Node.js >= 10.
+* Node.js >= 12.
 
 * Support building on POSIX platforms only at this moment.
 
 ## Dependency & build
 
-For successfull instalation you must have installed libglib binary & C headers.
+* [CMake tool](https://cmake.org/).
+* pkg-config tool (on POSIX)
+* libglib binary & C headers
 
 On Ubuntu GNU/Linux this packages must be installed:
 
+* cmake
+* build-essentials
 * libglib2.0-dev
 
 On MacOS use **brew** and install:
+
+* cmake
 * pkg-config
 * glib
 
@@ -139,3 +145,5 @@ btree.get(500);
 // "500"
 
 ```
+
+See more docs here: [GitHub Wiki](https://github.com/unixs/node-btree/wiki/API)

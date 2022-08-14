@@ -1,8 +1,10 @@
-#include <static.h>
-#include <iterators.h>
+#include <core.h>
+#include <foreach.h>
+#include <interface.h>
 
 
-static void fromArrayCallback(ForEachContext_t *ctxt) {
+static void
+fromArrayCallback(ForEachContext_t *ctxt) {
   napi_env env = ctxt->bTree->env;
   napi_value key, value, box;
   bool valueIsArray = (bool) ctxt->data;
@@ -35,7 +37,8 @@ static void fromArrayCallback(ForEachContext_t *ctxt) {
   nativeInsertNode(env, ctxt->esbTree, box);
 }
 
-static void iterableIterate(napi_env env, napi_value iterable, forEachCallback callback, ForEachContext_t *ctxt) {
+static void
+iterableIterate(napi_env env, napi_value iterable, forEachCallback callback, ForEachContext_t *ctxt) {
   napi_value generator, SymbolIterator, iterator, next;
 
   NAPI_GLOBAL_SYM(env, "iterator", SymbolIterator);
@@ -81,7 +84,8 @@ static void iterableIterate(napi_env env, napi_value iterable, forEachCallback c
   } while(!isDone);
 }
 
-static void fromKeyValueIterable(napi_env env, napi_value iterable, napi_value esbTree) {
+static void
+fromKeyValueIterable(napi_env env, napi_value iterable, napi_value esbTree) {
   BTree_t *bTree;
 
   // Extract native BTree pointer
@@ -103,7 +107,8 @@ static void fromKeyValueIterable(napi_env env, napi_value iterable, napi_value e
 /**
  * static ES callback. BTree.from()
  */
-napi_value esStaticFrom(napi_env env, napi_callback_info cbInfo) {
+napi_value
+esStaticFrom(napi_env env, napi_callback_info cbInfo) {
   napi_value result, BTreeConstructor, argv[2];
   napi_value global, Map;
   size_t argc = 2;

@@ -1,6 +1,9 @@
-#include <extra.h>
+#include <core.h>
+#include <interface.h>
 
-napi_value esToMap(napi_env env, napi_callback_info cbInfo) {
+
+napi_value
+esToMap(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, map, global, constructor;
   size_t argc = 0;
 
@@ -19,7 +22,8 @@ napi_value esToMap(napi_env env, napi_callback_info cbInfo) {
   return map;
 }
 
-napi_value esToSet(napi_env env, napi_callback_info cbInfo) {
+napi_value
+esToSet(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, set, global, constructor, valuesFn, iterator;
   size_t argc = 0;
 

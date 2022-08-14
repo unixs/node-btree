@@ -10,6 +10,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * toArray()
 * toArrays()
 * toObject()
+* flatten()
+* seachAfter()
+* searchBefore()
+* searchBetween()
+
+## [0.7.0] - 2023-02-27
+
+### Changed
+
+* Built system was changed from gyp to CMake!
+
+### Added
+
+* forEachReverse()
+* last()
+* first()
+* before()
+* after()
+* between()
+* GLIB_VERSION exported object
+* GLIB_VERSION.MAJOR number field
+* GLIB_VERSION.MINOR number field
+* GLIB_VERSION.PATCH number field
+* GLIB_VERSION.hasGTreeNode() predicate - returns true if GLib >= 2.68
+* Coverage test report for C code
+
+### Removed
+
+* Iterators (Symbol.iterator) and related features for GLib < 2.68
 
 ## [0.6.2] - 2022-06-06
 

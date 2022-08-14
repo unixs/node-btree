@@ -4,8 +4,9 @@
   "description": "Native binary tree implementation baseb on GLib Balanced Binary Trees (GTree) for Node.js",
   "main": "./lib/index",
   "scripts": {
-    "install": "ncmake rebuild",
-    "test": "jest -c test/config/jest.config.js"
+    "install": "cmake-js compile",
+    "test": "jest -c test/config/jest.config.js",
+    "build-debug": "cmake-js clean && cmake-js -D"
   },
   "repository": {
     "type": "git",
@@ -26,26 +27,28 @@
     "glib",
     "balanced",
     "binary",
-    "tree"
+    "tree",
+    "avl"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "cpu": [
-    "x64"
+    "x64",
+    "arm64"
   ],
   "os": [
     "!win32"
   ],
   "dependencies": {
-    "node-cmake": "~2.5.1"
+    "cmake-js": "~7.2.1"
   },
   "devDependencies": {
-    "@types/jest": "~27",
-    "@types/node": "~16",
+    "@types/jest": "~29",
+    "@types/node": "~18",
     "eslint": "~8",
-    "eslint-plugin-jest": "~26",
-    "jest": "~28"
+    "eslint-plugin-jest": "~27",
+    "jest": "~29"
   },
   "optionalDependencies": {
     "fsevents": "~2"

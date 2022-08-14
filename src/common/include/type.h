@@ -1,17 +1,7 @@
-#include <node_api.h>
-#include <glib.h>
+#include <core.h>
 
-#ifndef _COMMON_H_
-#define _COMMON_H_
-
-#include <utils.h>
-
-
-extern const char *msgTooFewArguments;
-extern const char *msgCorrupt;
-
-// Cached ES constructor
-extern napi_ref constructor;
+#ifndef _TYPE_H_
+#define _TYPE_H_
 
 /**
  * Context for native bTree
@@ -41,6 +31,10 @@ typedef struct {
 // Type alias for tree node
 typedef BTreeNode_t* BTreeNode;
 
-void nativeInsertNode(napi_env env, napi_value esBtree, napi_value box);
+BTree_t*
+btreeAlloc(napi_env env);
 
-#endif //_COMMON_H_
+void
+freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint);
+
+#endif // _TYPE_H_

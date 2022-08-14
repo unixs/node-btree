@@ -1,7 +1,10 @@
-#include <array.h>
-#include <iterators.h>
+#include <core.h>
+#include <foreach.h>
+#include <interface.h>
 
-static gboolean nativeBTreeFilter(gpointer key, gpointer value, gpointer data) {
+
+static gboolean
+nativeBTreeFilter(gpointer key, gpointer value, gpointer data) {
   BTreeNode node = (BTreeNode) value;
   ForEachContext_t *ctxt = (ForEachContext_t *) data;
   napi_value accumulator = (napi_value) ctxt->data;
@@ -39,18 +42,18 @@ static gboolean nativeBTreeFilter(gpointer key, gpointer value, gpointer data) {
     napi_call_function(env, ctxt->cbThis, ctxt->callback,
       (sizeof(argv) / sizeof(napi_value)), argv, &cbResult));
 
-  NAPI_CALL(env, true,
+  NAPI_CALL(env, false,
     napi_coerce_to_bool(env, cbResult, &cbResult));
 
   bool ok = false;
 
-  NAPI_CALL(env, true,
+  NAPI_CALL(env, false,
     napi_get_value_bool(env, cbResult, &ok));
 
   if (ok) {
     napi_handle_scope scope;
 
-    NAPI_CALL(env, true,
+    NAPI_CALL(env, false,
       napi_open_handle_scope(env, &scope));
 
     napi_value box;
@@ -67,7 +70,7 @@ static gboolean nativeBTreeFilter(gpointer key, gpointer value, gpointer data) {
 
     nativeInsertNode(env, accumulator, box);
 
-    NAPI_CALL(env, true,
+    NAPI_CALL(env, false,
       napi_close_handle_scope(env, scope));
     // ctxt->data = (void *) cbResult;
   }
@@ -78,7 +81,8 @@ static gboolean nativeBTreeFilter(gpointer key, gpointer value, gpointer data) {
 /**
  * Native callback for es reduce()
  */
-static gboolean nativeBTreeReduce(gpointer key, gpointer value, gpointer data) {
+static gboolean
+nativeBTreeReduce(gpointer key, gpointer value, gpointer data) {
   BTreeNode node = (BTreeNode) value;
   ForEachContext_t *ctxt = (ForEachContext_t *) data;
   napi_value accumulator = (napi_value) ctxt->data;
@@ -125,7 +129,8 @@ static gboolean nativeBTreeReduce(gpointer key, gpointer value, gpointer data) {
 /**
  * Native callback for ES map()
  */
-static gboolean nativeBTreeMap(gpointer key, gpointer value, gpointer data) {
+static gboolean
+nativeBTreeMap(gpointer key, gpointer value, gpointer data) {
   BTreeNode node = (BTreeNode) value;
   ForEachContext_t *ctxt = (ForEachContext_t *) data;
   napi_value array = (napi_value) ctxt->data;
@@ -170,7 +175,8 @@ static gboolean nativeBTreeMap(gpointer key, gpointer value, gpointer data) {
 }
 
 
-napi_value esMap(napi_env env, napi_callback_info cbInfo) {
+napi_value
+esMap(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, array, callback, cbThis, argv[2];
   BTree_t *bTree;
   size_t argc = 2;
@@ -211,7 +217,8 @@ napi_value esMap(napi_env env, napi_callback_info cbInfo) {
   return array;
 }
 
-napi_value esReduce(napi_env env, napi_callback_info cbInfo) {
+napi_value
+esReduce(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, callback, accumulator, cbThis, argv[2];
   BTree_t *bTree;
   size_t argc = 2;
@@ -244,7 +251,8 @@ napi_value esReduce(napi_env env, napi_callback_info cbInfo) {
   return (napi_value) ctxt.data;
 }
 
-napi_value esFilter(napi_env env, napi_callback_info cbInfo) {
+napi_value
+esFilter(napi_env env, napi_callback_info cbInfo) {
   napi_value esThis, callback, accumulator, cbThis, argv[2];
   BTree_t *bTree;
   size_t argc = 2;
@@ -269,7 +277,7 @@ napi_value esFilter(napi_env env, napi_callback_info cbInfo) {
 
   napi_value esbTreeConstructor, comparatorFunc;
   NAPI_CALL(env, true,
-    napi_get_reference_value(env, constructor, &esbTreeConstructor));
+    napi_get_reference_value(env, btreeConstructorRef, &esbTreeConstructor));
 
   NAPI_CALL(env, true,
     napi_get_reference_value(env, bTree->comparator, &comparatorFunc));

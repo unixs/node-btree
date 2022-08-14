@@ -8,16 +8,21 @@
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/usr/bin/node",
+      "program": "/opt/homebrew/opt/node@18/bin/node",
       "args": [
         "--expose-gc",
-        "tmp/native_debug.js"
+        "test/debug.js"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "development"
+        }
+      ],
       "externalConsole": false,
-      "MIMode": "gdb",
+      "MIMode": "lldb",
       "setupCommands": [
           {
               "description": "Enable pretty-printing for gdb",

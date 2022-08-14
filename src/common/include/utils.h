@@ -1,6 +1,8 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#include <node_api.h>
+
 #define DEF_METHOD(name, func) { \
     name,                   \
     NULL,                   \
@@ -100,9 +102,9 @@
 /**
  * Allocate memory for & initialize new node
  */
-#define NEW_NODE(ptr, bTree, ref) \
+#define NEW_NODE(ptr, tree, ref) \
   ptr = g_new(BTreeNode_t, 1);    \
-  ptr->bTree = bTree;             \
+  ptr->bTree = tree;             \
   ptr->esKeyValue = ref;
 
 /**

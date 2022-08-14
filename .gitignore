@@ -55,3 +55,7 @@ node_modules/
 tmp/
 build/
 lib/binding
+.cmake-js/
+.npm/
+coverage/
+.DS_Store

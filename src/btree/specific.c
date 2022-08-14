@@ -1,4 +1,6 @@
-#include <specific.h>
+#include <core.h>
+#include <interface.h>
+
 
 /**
  * ES callback. Return bTree height

@@ -6,11 +6,9 @@
     {
       "type": "shell",
       "label": "Build extension",
-      "command": "npm",
+      "command": "npx",
       "args": [
-        "install",
-        "--build-from-source",
-        "--debug"
+        "cmake-js", "-D"
       ],
       "problemMatcher": {
         "base": "$gcc",

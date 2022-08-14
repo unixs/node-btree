@@ -1,5 +1,11 @@
-const { BTree } = require("../lib");
-// const { BTree } = require("../lib/binding/Debug/node-v83-linux-x64/node_btree.node");
+const { BTree, GLIB_VERSION: { hasGTreeNode } } = require("../lib");
+
+
+const modernGlibOnly = (callback) => {
+  if (hasGTreeNode()) {
+    callback.call(this);
+  }
+};
 
 const MSG_TOO_FEW_ARGUMENTS = "Too few arguments.";
 
@@ -395,34 +401,189 @@ describe('Traverse functionality', () => {
 
   describe("Iterator interface", () => {
 
-    it('Should have next method', () => {
-      const btree = createBTree().btree;
-      const iterator = btree[Symbol.iterator]();
+    modernGlibOnly(() => {
+      it('Should have next method', () => {
+        const btree = createBTree().btree;
+        const iterator = btree[Symbol.iterator]();
 
-      expect(typeof iterator.next).toBe('function');
-    });
+        expect(typeof iterator.next).toBe('function');
+      });
 
-    it('Iterator should return value', () => {
-      const { btree } = createBTree();
-      const iterator = btree[Symbol.iterator]();
+      it('Iterator should return value', () => {
+        const { btree } = createBTree();
+        const iterator = btree[Symbol.iterator]();
 
-      expect(typeof iterator.next()).toBe('object');
-    });
+        expect(typeof iterator.next()).toBe('object');
+      });
 
-    it('Iterator result should have correct fields', () => {
-      const { btree, check } = createBTree();
-      const iterator = btree[Symbol.iterator]();
+      it('Iterator result should have correct fields', () => {
+        const { btree, check } = createBTree();
+        const iterator = btree[Symbol.iterator]();
 
-      const result = iterator.next();
+        const result = iterator.next();
 
-      expect(result.value[0]).toBe(check[0].key);
-      expect(result.value[1]).toBe(check[0].val);
-      expect(result.done).toBe(false);
+        expect(result.value[0]).toBe(check[0].key);
+        expect(result.value[1]).toBe(check[0].val);
+        expect(result.done).toBe(false);
+      });
     });
 
   });
 
   describe("Iteration methods", () => {
+
+    describe('forEachReverse()', () => {
+      it("is function", () => {
+        const btree = new BTree(comparator);
+
+        expect(typeof btree.forEachReverse).toBe("function");
+      });
+
+      it("iterable by forEachReverse()", () => {
+        const btree = new BTree(comparator);
+
+        btree.set("50", 51);
+        btree.set("15", 150);
+        btree.set("30", 30);
+
+
+        function* check() {
+          yield {
+            key: "50",
+            val: 51,
+            idx: 0,
+            revIdx: 2
+          };
+          yield {
+            key: "30",
+            val: 30,
+            idx: 1,
+            revIdx: 1
+          };
+          yield {
+            key: "15",
+            val: 150,
+            idx: 2,
+            revIdx: 0
+          };
+        }
+
+        const checkIterator = check();
+
+        btree.forEachReverse((val, key, idx, revIdx) => {
+          const check = checkIterator.next().value;
+
+          expect(key).toBe(check.key);
+          expect(val).toBe(check.val);
+          expect(idx).toBe(check.idx);
+          expect(revIdx).toBe(check.revIdx);
+        });
+      });
+
+
+
+
+
+
+
+
+
+      it('has value first arg', () => {
+        const btree = initBtree();
+
+        const check = [50, 30, 150];
+
+        const checkIterator = check[Symbol.iterator]();
+
+        btree.forEachReverse((val) => {
+          expect(val).toBe(checkIterator.next().value);
+        });
+      });
+
+      it('has key second arg', () => {
+        const btree = initBtree();
+
+        const check = ["50", "30", "15"];
+
+        const checkIterator = check[Symbol.iterator]();
+
+        btree.forEachReverse((_val, key) => {
+          expect(key).toBe(checkIterator.next().value);
+        });
+      });
+
+      it("callback should have third idx arg", () => {
+        const btree = initBtree();
+
+        let i = 0;
+
+        btree.forEachReverse((_val, _key, idx) => {
+          expect(idx).toBe(i++);
+        });
+      });
+
+      it("recive context with basic function", () => {
+        const btree = initBtree();
+
+        btree.forEachReverse(function(val) {
+
+          expect(this.something).toBe("test");
+
+          return val;
+        }, { something: "test" });
+      });
+
+      it("not recive context with arrow function", () => {
+        const btree = initBtree();
+
+        btree.forEachReverse((val) => {
+
+          expect(this).toMatchObject({});
+          expect(this.test).toBe(undefined);
+
+          return val;
+        }, { test: "test" });
+      });
+
+      it("has Object context with arrow function", () => {
+        const btree = initBtree();
+
+        btree.forEachReverse((val) => {
+
+          expect(this).toMatchObject({});
+
+          return val;
+        });
+      });
+
+      it("has global context with basic function", () => {
+        const btree = initBtree();
+
+        btree.forEachReverse(function(val) {
+          expect(this.process).toBeDefined();
+          expect(this.process.nextTick).toBeDefined();
+          expect(this.setTimeout).toBeDefined();
+
+          return val;
+        });
+      });
+
+      it('should throw error if few arguments', () => {
+        const btree = initBtree();
+
+        expect(() => btree.forEachReverse()).toThrow(MSG_TOO_FEW_ARGUMENTS);
+      });
+
+
+
+
+
+
+
+
+
+    });
+
 
     describe('forEach()', () => {
       it('Should be iterable by forEach()', () => {
@@ -457,7 +618,7 @@ describe('Traverse functionality', () => {
         });
       });
 
-      it('forEach() should have value first arg', () => {
+      it('has value first arg', () => {
         const btree = initBtree();
 
         const check = [150, 30, 50];
@@ -469,7 +630,7 @@ describe('Traverse functionality', () => {
         });
       });
 
-      it('forEach() should have key second arg', () => {
+      it('has key second arg', () => {
         const btree = initBtree();
 
         const check = ["15", "30", "50"];
@@ -481,7 +642,7 @@ describe('Traverse functionality', () => {
         });
       });
 
-      it("forEach() callback should have third idx arg", () => {
+      it("callback has third idx arg", () => {
         const btree = initBtree();
 
         let i = 0;
@@ -491,7 +652,7 @@ describe('Traverse functionality', () => {
         });
       });
 
-      it("forEach() should recive context with basic function", () => {
+      it("recive context with basic function", () => {
         const btree = initBtree();
 
         btree.forEach(function(val) {
@@ -502,7 +663,7 @@ describe('Traverse functionality', () => {
         }, { something: "test" });
       });
 
-      it("forEach() should not recive context with arrow function", () => {
+      it("not recive context with arrow function", () => {
         const btree = initBtree();
 
         btree.forEach((val) => {
@@ -514,7 +675,7 @@ describe('Traverse functionality', () => {
         }, { test: "test" });
       });
 
-      it("forEach() should have Object context with arrow function", () => {
+      it("has Object context with arrow function", () => {
         const btree = initBtree();
 
         btree.forEach((val) => {
@@ -525,7 +686,7 @@ describe('Traverse functionality', () => {
         });
       });
 
-      it("forEach() should have global context with basic function", () => {
+      it("has global context with basic function", () => {
         const btree = initBtree();
 
         btree.forEach(function(val) {
@@ -537,7 +698,7 @@ describe('Traverse functionality', () => {
         });
       });
 
-      it('forEach() should throw error if few arguments', () => {
+      it('throw error if few arguments', () => {
         const btree = initBtree();
 
         expect(() => btree.forEach()).toThrow(MSG_TOO_FEW_ARGUMENTS);
@@ -545,149 +706,150 @@ describe('Traverse functionality', () => {
 
     });
 
+    modernGlibOnly(() => {
+      it('Should be iterable by for-of', () => {
+        const btree = new BTree(comparator);
 
-    it('Should be iterable by for-of', () => {
-      const btree = new BTree(comparator);
+        btree.set("50", 51);
+        btree.set("15", 150);
+        btree.set("30", 30);
 
-      btree.set("50", 51);
-      btree.set("15", 150);
-      btree.set("30", 30);
+        const check = [
+          {
+            key: "15",
+            val: 150
+          },
+          {
+            key: "30",
+            val: 30
+          },
+          {
+            key: "50",
+            val: 51
+          },
+        ];
 
-      const check = [
-        {
-          key: "15",
-          val: 150
-        },
-        {
-          key: "30",
-          val: 30
-        },
-        {
-          key: "50",
-          val: 51
-        },
-      ];
+        const checkIterator = check[Symbol.iterator]();
 
-      const checkIterator = check[Symbol.iterator]();
+        for (const [key, val] of btree) {
+          const check = checkIterator.next().value;
 
-      for (const [key, val] of btree) {
-        const check = checkIterator.next().value;
+          expect(key).toBe(check.key);
+          expect(val).toBe(check.val);
+        }
+      });
 
-        expect(key).toBe(check.key);
-        expect(val).toBe(check.val);
-      }
-    });
+      it('Should be iterable by entries()', () => {
+        const btree = new BTree(comparator);
 
-    it('Should be iterable by entries()', () => {
-      const btree = new BTree(comparator);
+        btree.set("50", 51);
+        btree.set("15", 150);
+        btree.set("30", 30);
 
-      btree.set("50", 51);
-      btree.set("15", 150);
-      btree.set("30", 30);
+        const check = [
+          {
+            key: "15",
+            val: 150
+          },
+          {
+            key: "30",
+            val: 30
+          },
+          {
+            key: "50",
+            val: 51
+          },
+        ];
 
-      const check = [
-        {
-          key: "15",
-          val: 150
-        },
-        {
-          key: "30",
-          val: 30
-        },
-        {
-          key: "50",
-          val: 51
-        },
-      ];
+        const checkIterator = check[Symbol.iterator]();
+        const iterator = btree.entries();
 
-      const checkIterator = check[Symbol.iterator]();
-      const iterator = btree.entries();
+        let expected;
 
-      let expected;
+        while (!(expected = checkIterator.next()).done) {
+          const [key, value] = iterator.next().value;
 
-      while (!(expected = checkIterator.next()).done) {
-        const [key, value] = iterator.next().value;
+          expect(key).toBe(expected.value.key);
+          expect(value).toBe(expected.value.val);
+        }
+      });
 
-        expect(key).toBe(expected.value.key);
-        expect(value).toBe(expected.value.val);
-      }
-    });
+      it('Should be iterable by values()', () => {
+        const btree = new BTree(comparator);
 
-    it('Should be iterable by values()', () => {
-      const btree = new BTree(comparator);
+        btree.set("50", 51);
+        btree.set("15", 150);
+        btree.set("30", 30);
 
-      btree.set("50", 51);
-      btree.set("15", 150);
-      btree.set("30", 30);
+        const check = [
+          {
+            key: "15",
+            val: 150
+          },
+          {
+            key: "30",
+            val: 30
+          },
+          {
+            key: "50",
+            val: 51
+          },
+        ];
 
-      const check = [
-        {
-          key: "15",
-          val: 150
-        },
-        {
-          key: "30",
-          val: 30
-        },
-        {
-          key: "50",
-          val: 51
-        },
-      ];
+        const checkIterator = check[Symbol.iterator]();
+        const iterator = btree.values();
 
-      const checkIterator = check[Symbol.iterator]();
-      const iterator = btree.values();
+        let expected;
 
-      let expected;
+        while (!(expected = checkIterator.next()).done) {
+          const value = iterator.next().value;
 
-      while (!(expected = checkIterator.next()).done) {
-        const value = iterator.next().value;
+          expect(value).toBe(expected.value.val);
+        }
+      });
 
-        expect(value).toBe(expected.value.val);
-      }
-    });
+      it('Should be iterable by keys()', () => {
+        const btree = new BTree(comparator);
 
-    it('Should be iterable by keys()', () => {
-      const btree = new BTree(comparator);
+        btree.set("50", 51);
+        btree.set("15", 150);
+        btree.set("30", 30);
 
-      btree.set("50", 51);
-      btree.set("15", 150);
-      btree.set("30", 30);
+        const check = [
+          {
+            key: "15",
+            val: 150
+          },
+          {
+            key: "30",
+            val: 30
+          },
+          {
+            key: "50",
+            val: 51
+          },
+        ];
 
-      const check = [
-        {
-          key: "15",
-          val: 150
-        },
-        {
-          key: "30",
-          val: 30
-        },
-        {
-          key: "50",
-          val: 51
-        },
-      ];
+        const checkIterator = check[Symbol.iterator]();
+        const iterator = btree.keys();
 
-      const checkIterator = check[Symbol.iterator]();
-      const iterator = btree.keys();
+        let expected;
 
-      let expected;
+        while (!(expected = checkIterator.next()).done) {
+          const value = iterator.next().value;
 
-      while (!(expected = checkIterator.next()).done) {
-        const value = iterator.next().value;
+          expect(value).toBe(expected.value.key);
+        }
+      });
 
-        expect(value).toBe(expected.value.key);
-      }
-    });
+      it('Should be iterable if empty', () => {
+        const btree = new BTree(comparator);
 
-    it('Should be iterable if empty', () => {
-      const btree = new BTree(comparator);
+        const result = btree.entries().next();
 
-      const result = btree.entries().next();
-
-      expect(result.value).toBe(undefined);
-      expect(result.done).toBe(true);
+        expect(result.value).toBe(undefined);
+        expect(result.done).toBe(true);
+      });
     });
 
   });
@@ -697,55 +859,60 @@ describe('Traverse functionality', () => {
 describe('Extra methods', () => {
   it.todo("toArray()");
   it.todo("toArrays()");
+  it.todo("flatten()");
 
-  describe("toMap()", () => {
-    it("toMap() should be callable", () => {
-      const btree = initBtree();
 
-      expect(btree.toMap.constructor.name).toBe("Function");
+  modernGlibOnly(() => {
+    describe("toMap()", () => {
+      it("toMap() should be callable", () => {
+        const btree = initBtree();
+
+        expect(btree.toMap.constructor.name).toBe("Function");
+      });
+
+      it.skip("toMap() should return Map instance", () => {
+        const btree = initBtree();
+        const map = btree.toMap();
+
+        expect(map).toBeInstanceOf(Map);
+      });
+
+      it("toMap() should return expected map k=>v pairs", () => {
+        const btree = initBtree();
+        const map = btree.toMap();
+
+        expect(map.get("50")).toBe(50);
+        expect(map.get("15")).toBe(150);
+        expect(map.get("30")).toBe(30);
+      });
     });
 
-    it.skip("toMap() should return Map instance", () => {
-      const btree = initBtree();
-      const map = btree.toMap();
+    describe("toSet()", () => {
+      it("toSet() should be callable", () => {
+        const btree = initBtree();
 
-      expect(map).toBeInstanceOf(Map);
-    });
+        expect(btree.toSet.constructor.name).toBe("Function");
+      });
 
-    it("toMap() should return expected map k=>v pairs", () => {
-      const btree = initBtree();
-      const map = btree.toMap();
+      it.skip("toSet() should return Set instance", () => {
+        const btree = initBtree();
+        const set = btree.toSet();
 
-      expect(map.get("50")).toBe(50);
-      expect(map.get("15")).toBe(150);
-      expect(map.get("30")).toBe(30);
+        expect(set).toBeInstanceOf(Set);
+      });
+
+      it("toSet() should return expected values", () => {
+        const btree = initBtree();
+        const set = btree.toSet();
+
+        expect(set.has(50)).toBe(true);
+        expect(set.has(150)).toBe(true);
+        expect(set.has(30)).toBe(true);
+        expect(set.has(42)).toBe(false);
+      });
     });
   });
 
-  describe("toSet()", () => {
-    it("toSet() should be callable", () => {
-      const btree = initBtree();
-
-      expect(btree.toSet.constructor.name).toBe("Function");
-    });
-
-    it.skip("toSet() should return Set instance", () => {
-      const btree = initBtree();
-      const set = btree.toSet();
-
-      expect(set).toBeInstanceOf(Set);
-    });
-
-    it("toSet() should return expected values", () => {
-      const btree = initBtree();
-      const set = btree.toSet();
-
-      expect(set.has(50)).toBe(true);
-      expect(set.has(150)).toBe(true);
-      expect(set.has(30)).toBe(true);
-      expect(set.has(42)).toBe(false);
-    });
-  });
 
   describe("filter()", () => {
 
@@ -981,6 +1148,58 @@ describe('Extra methods', () => {
       expect(() => btree.map()).toThrow(MSG_TOO_FEW_ARGUMENTS);
     });
 
+  });
+
+  modernGlibOnly(() => {
+    describe("first()", () => {
+      let btree;
+
+      beforeAll(() => {
+        btree = initBtree();
+      });
+
+      it("is function", () => {
+        expect(typeof btree.first).toBe("function");
+      });
+
+      it("return expected result", () => {
+        const { key, value } = btree.first();
+
+        expect(key).toBe("15");
+        expect(value).toBe(150);
+      });
+
+      it("return undef if not found", () => {
+        const result = new BTree(comparator);
+
+        expect(result.first()).toBeUndefined();
+      });
+    });
+
+    describe("last()", () => {
+      let btree;
+
+      beforeAll(() => {
+        btree = initBtree();
+      });
+
+      it("is object", () => {
+        expect(typeof btree.last).toBe("function");
+      });
+
+      it("return expected result", () => {
+        const { key, value } = btree.last();
+
+        expect(key).toBe("50");
+        expect(value).toBe(50);
+      });
+
+      it("return undef if not found", () => {
+        const result = new BTree(comparator);
+
+        expect(result.last()).toBeUndefined();
+      });
+    });
   });
 
 });
