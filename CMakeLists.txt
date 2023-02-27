@@ -3,7 +3,7 @@ cmake_policy(SET CMP0042 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 project(node_btree
-	VERSION 0.6.2
+	VERSION 0.7.0
 	LANGUAGES C)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
