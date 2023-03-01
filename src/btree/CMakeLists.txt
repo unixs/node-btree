@@ -9,6 +9,7 @@ add_library(specific		OBJECT specific.c)
 add_library(static			OBJECT static.c)
 add_library(extra			OBJECT extra.c)
 add_library(search			OBJECT search.c)
+add_library(conversion		OBJECT conversion.c)
 
 set(LIB_OBJECTS)
 
@@ -21,7 +22,8 @@ list(APPEND LIB_OBJECTS
 	$<TARGET_OBJECTS:static>
 	$<TARGET_OBJECTS:extra>
 	$<TARGET_OBJECTS:type>
-	$<TARGET_OBJECTS:comparator>)
+	$<TARGET_OBJECTS:comparator>
+	$<TARGET_OBJECTS:conversion>)
 
 if(HAS_GTREE_NODE)
 	add_library(iterators OBJECT iterators.c)

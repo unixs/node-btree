@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * toArray()
 * toArrays()
-* toObject()
 * flatten()
+* getKeys()
+* getValues()
 * seachAfter()
 * searchBefore()
 * searchBetween()
+* INT btree without ES comparator fun-on
 
 ## [0.7.0] - 2023-02-27
 

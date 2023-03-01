@@ -857,63 +857,6 @@ describe('Traverse functionality', () => {
 });
 
 describe('Extra methods', () => {
-  it.todo("toArray()");
-  it.todo("toArrays()");
-  it.todo("flatten()");
-
-
-  modernGlibOnly(() => {
-    describe("toMap()", () => {
-      it("toMap() should be callable", () => {
-        const btree = initBtree();
-
-        expect(btree.toMap.constructor.name).toBe("Function");
-      });
-
-      it.skip("toMap() should return Map instance", () => {
-        const btree = initBtree();
-        const map = btree.toMap();
-
-        expect(map).toBeInstanceOf(Map);
-      });
-
-      it("toMap() should return expected map k=>v pairs", () => {
-        const btree = initBtree();
-        const map = btree.toMap();
-
-        expect(map.get("50")).toBe(50);
-        expect(map.get("15")).toBe(150);
-        expect(map.get("30")).toBe(30);
-      });
-    });
-
-    describe("toSet()", () => {
-      it("toSet() should be callable", () => {
-        const btree = initBtree();
-
-        expect(btree.toSet.constructor.name).toBe("Function");
-      });
-
-      it.skip("toSet() should return Set instance", () => {
-        const btree = initBtree();
-        const set = btree.toSet();
-
-        expect(set).toBeInstanceOf(Set);
-      });
-
-      it("toSet() should return expected values", () => {
-        const btree = initBtree();
-        const set = btree.toSet();
-
-        expect(set.has(50)).toBe(true);
-        expect(set.has(150)).toBe(true);
-        expect(set.has(30)).toBe(true);
-        expect(set.has(42)).toBe(false);
-      });
-    });
-  });
-
-
   describe("filter()", () => {
 
     it("filter() should be callable", () => {

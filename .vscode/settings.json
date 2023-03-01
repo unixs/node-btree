@@ -1,17 +1,9 @@
 {
-  "python.pythonPath": "/usr/bin/python",
   "[c]": {
     "editor.formatOnType": false
   },
-  "files.associations": {
-    "*.c": "c",
-    "glib.h": "c",
-    "error.h": "c",
-    "errno.h": "c",
-    "common.h": "c"
-  },
   "cmake.buildTask": false,
   "cmake.configureEnvironment": {
-    "CMAKE_JS_INC": "${userHome}/.cmake-js/node-arm64/v18.14.1/include/node"
+    "CMAKE_JS_INC": "${userHome}/.cmake-js/node-arm64/v18.14.2/include/node"
   }
 }

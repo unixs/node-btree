@@ -1,10 +1,7 @@
 {
     "configurations": [
         {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/src/include/*"
-            ],
+            "name": "Mac",
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
@@ -15,7 +12,7 @@
                 "-Wextra",
                 "-std=C11"
             ],
-            "intelliSenseMode": "gcc-x64",
+            "intelliSenseMode": "macos-clang-arm64",
             "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],

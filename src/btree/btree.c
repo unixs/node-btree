@@ -44,6 +44,11 @@ napi_property_descriptor btree_export(napi_env env) {
 
     // Extra methods
     #ifdef HAS_GTREE_NODE
+      DEF_METHOD("toArrays", esToArrays),
+      DEF_METHOD("toArray", esToArray),
+      DEF_METHOD("flatten", esFlatten),
+      DEF_METHOD("getKeys", esKeys),
+      DEF_METHOD("getValues", esValues),
       DEF_METHOD("toMap", esToMap),
       DEF_METHOD("toSet", esToSet),
       DEF_METHOD("first", esFirst),
