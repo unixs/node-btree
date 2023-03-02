@@ -7,3 +7,5 @@ test/
 build/
 tmp/
 lib/binding/
+coverage/
+.github/
