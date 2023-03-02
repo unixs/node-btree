@@ -7,24 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-* toArray()
-* toArrays()
-* flatten()
-* getKeys()
-* getValues()
 * seachAfter()
 * searchBefore()
 * searchBetween()
 * INT btree without ES comparator fun-on
 * reverseIterator()
-* Legacy GLIB tests
 * modern clear function
+
+## [0.8.0] - 2023-03-02
+
+## Changed
+
+* Lot of changes in tests
+* Bugfix for building fail for GLIB < 2.68
+
+## Added
+
+* toArray()
+* toArrays()
+* flatten()
+* getKeys()
+* getValues()
+* Legacy GLIB tests
 
 ## [0.7.0] - 2023-02-27
 
 ### Changed
 
-* Built system was changed from gyp to CMake!
+* Building system was changed from gyp to CMake!
+* Iterators (Symbol.iterator) and related features now only for GLib < 2.68
+* toMap(), toSet() only for GLib < 2.68
 
 ### Added
 
@@ -40,10 +52,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * GLIB_VERSION.PATCH number field
 * GLIB_VERSION.hasGTreeNode() predicate - returns true if GLib >= 2.68
 * Coverage test report for C code
-
-### Removed
-
-* Iterators (Symbol.iterator) and related features for GLib < 2.68
 
 ## [0.6.2] - 2022-06-06
 
