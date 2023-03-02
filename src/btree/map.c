@@ -27,13 +27,6 @@ nativeBTreeForEach(gpointer key, gpointer val, gpointer data) {
   napi_env env = ctxt->bTree->env;
   napi_value esObject, esKey, esValue, esIdx, esNull;
 
-  if (val == NULL) {
-    NAPI_CALL(env, false,
-      napi_throw_error(env, NULL, msgCorrupt));
-
-    return TRUE;
-  }
-
   NAPI_CALL(env, false,
     napi_get_reference_value(env, node->esKeyValue, &esObject));
 
@@ -136,16 +129,15 @@ esDelete(napi_env env, napi_callback_info cbInfo) {
   BTree_t *bTree;
 
   size_t argc = 1;
-  napi_value argv[1];
+  napi_value arg;
 
   // Get es this
   NAPI_CALL(env, false,
-    napi_get_cb_info(env, cbInfo, &argc, argv, &esThis, NULL));
+    napi_get_cb_info(env, cbInfo, &argc, &arg, &esThis, NULL));
 
   // If key arg not passed. Set it to undefined
   if (argc < 1) {
-    NAPI_CALL(env, false,
-      napi_get_undefined(env, &argv[0]));
+    arg = getEsUndef(env);
   }
 
   // Extract native BTree pointer
@@ -157,7 +149,7 @@ esDelete(napi_env env, napi_callback_info cbInfo) {
     napi_create_object(env, &searchBox));
 
   NAPI_CALL(env, false,
-    napi_set_named_property(env, searchBox, KEY, argv[0]));
+    napi_set_named_property(env, searchBox, KEY, arg));
 
   NAPI_CALL(env, false,
     napi_create_reference(env, searchBox, 0, &searchBoxRef));

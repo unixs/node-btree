@@ -71,6 +71,46 @@ unrefBtreeNodeEsObject(napi_env env, napi_ref ref, napi_value *key, napi_value *
   return result;
 }
 
+static gint
+to_ptr_array_cb(gpointer a, gpointer b, gpointer data)
+{
+  GPtrArray *buff = (GPtrArray *) data;
+
+  BTreeNode node = (BTreeNode) a;
+
+  g_ptr_array_add(buff, node->esKeyValue); // add napi_ref from key field
+
+  return FALSE;
+}
+
+
+GPtrArray*
+gtreeToPtrArray(GTree *gtree)
+{
+  gint tree_size = g_tree_nnodes(gtree);
+
+  GPtrArray *buff = g_ptr_array_sized_new(tree_size);
+
+  g_tree_foreach(gtree, to_ptr_array_cb, (gpointer) buff);
+
+  return buff;
+}
+
+// TODO: possible inline
+napi_ref
+cloneInternalEsRef(napi_env env, napi_ref ref) {
+  napi_ref result;
+
+  napi_value box = cloneInternalEsObject(env, ref);
+
+  NAPI_CALL(env, false,
+    napi_create_reference(env, box, 1, &result));
+
+  return result;
+}
+
+#ifdef HAS_GTREE_NODE
+
 napi_value
 getNodeEsObject(napi_env env, GTreeNode *g_node) {
   if (g_node) {
@@ -129,31 +169,6 @@ getNodeEsFieldPair(napi_env env, GTreeNode *g_node) {
   else {
     return getEsUndef(env);
   }
-}
-
-static gint
-to_ptr_array_cb(gpointer a, gpointer b, gpointer data)
-{
-  GPtrArray *buff = (GPtrArray *) data;
-
-  BTreeNode node = (BTreeNode) a;
-
-  g_ptr_array_add(buff, node->esKeyValue); // add napi_ref from key field
-
-  return FALSE;
-}
-
-
-GPtrArray*
-gtreeToPtrArray(GTree *gtree)
-{
-  gint tree_size = g_tree_nnodes(gtree);
-
-  GPtrArray *buff = g_ptr_array_sized_new(tree_size);
-
-  g_tree_foreach(gtree, to_ptr_array_cb, (gpointer) buff);
-
-  return buff;
 }
 
 GTreeNode*
@@ -224,19 +239,6 @@ cloneInternalEsObject(napi_env env, napi_ref ref) {
 }
 
 // TODO: possible inline
-napi_ref
-cloneInternalEsRef(napi_env env, napi_ref ref) {
-  napi_ref result;
-
-  napi_value box = cloneInternalEsObject(env, ref);
-
-  NAPI_CALL(env, false,
-    napi_create_reference(env, box, 1, &result));
-
-  return result;
-}
-
-// TODO: possible inline
 BTreeNode
 cloneBTreeNode(napi_env env, BTree_t *btree, GTreeNode *node) {
   napi_ref origEsNodeRef = getEsGTreeNode(node)->esKeyValue;
@@ -247,3 +249,5 @@ cloneBTreeNode(napi_env env, BTree_t *btree, GTreeNode *node) {
 
   return result;
 }
+
+#endif // HAS_GTREE_NODE

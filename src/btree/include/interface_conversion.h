@@ -1,12 +1,12 @@
 #include <node_api.h>
 
-napi_value
-esToMap(napi_env env, napi_callback_info cbInfo);
-
-napi_value
-esToSet(napi_env env, napi_callback_info cbInfo);
-
 #ifdef HAS_GTREE_NODE
+
+  napi_value
+  esToMap(napi_env env, napi_callback_info cbInfo);
+
+  napi_value
+  esToSet(napi_env env, napi_callback_info cbInfo);
 
   napi_value
   esToArrays(napi_env env, napi_callback_info cbInfo);

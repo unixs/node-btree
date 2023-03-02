@@ -1,18 +1,38 @@
 {
-// Документацию по формату tasks.json см.
-  // по адресу https://go.microsoft.com/fwlink/?LinkId=733558
   "version": "2.0.0",
   "tasks": [
+    {
+      "type": "shell",
+      "label": "Build debug extension",
+      "command": "npx",
+      "args": [
+        "cmake-js",
+        "rebuild",
+        "-D"
+      ],
+      "problemMatcher": {
+        "base": "$gcc",
+        "fileLocation": [
+          "relative",
+          "${workspaceRoot}"
+        ]
+      },
+      "group": "build"
+    },
     {
       "type": "shell",
       "label": "Build extension",
       "command": "npx",
       "args": [
-        "cmake-js", "-D"
+        "cmake-js",
+        "rebuild"
       ],
       "problemMatcher": {
         "base": "$gcc",
-        "fileLocation": ["relative", "${workspaceRoot}"]
+        "fileLocation": [
+          "relative",
+          "${workspaceRoot}"
+        ]
       },
       "group": "build"
     },
@@ -20,7 +40,45 @@
       "type": "npm",
       "label": "Jest tests",
       "script": "test",
-      "group": "test"
+      "group": "test",
+      "dependsOn":[
+        "Build debug extension"
+      ],
+      "options": {
+        "env": {
+          "NODE_ENV": "development"
+        }
+      }
+    },
+    {
+      "type": "shell",
+      "label": "Coverage report",
+      "command": "ctest",
+      "args": [
+        "-VV",
+        "--test-dir",
+        "build"
+      ],
+      "group": "test",
+      "problemMatcher": [],
+      "dependsOn":[
+        "Jest tests"
+      ]
+    },
+    {
+      "type": "shell",
+      "label": "Coverage html report",
+      "command": "gcovr",
+      "args": [
+        "-r", ".", "--print-summary", "--html", "--html-details",
+        "-o", "coverage/coverage.html",
+        "build"
+      ],
+      "group": "test",
+      "problemMatcher": [],
+      "dependsOn":[
+        "Jest tests"
+      ]
     }
   ]
 }

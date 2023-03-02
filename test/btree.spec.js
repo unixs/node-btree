@@ -1,11 +1,10 @@
 const { BTree, GLIB_VERSION: { hasGTreeNode } } = require("../lib");
 
 
-const modernGlibOnly = (callback) => {
-  if (hasGTreeNode()) {
-    callback.call(this);
-  }
-};
+/**
+ * Describe cases for GLIB version >= 2.68
+ */
+describe["modern"] = hasGTreeNode() ? describe : describe.skip;
 
 const MSG_TOO_FEW_ARGUMENTS = "Too few arguments.";
 
@@ -36,13 +35,6 @@ function* initGenerator() {
   yield { key: "30", value: 30 };
   yield { key: "50", value: 50 };
 }
-
-/*
-afterAll(() => {
-  console.log("After all.");
-  global.gc();
-});
-*/
 
 describe("Inheritance", () => {
 
@@ -219,7 +211,7 @@ describe("Base functionality", () => {
 
   });
 
-  describe("Map() interface implementation", () => {
+  describe("Map() interface", () => {
 
     it("Check size property if empty", () => {
       const btree = new BTree(comparator);
@@ -303,6 +295,33 @@ describe("Base functionality", () => {
       expect(btree.get(3)).toBe(7);
     });
 
+    it("deletable if arg is missing", () => {
+      const btree = new BTree((a, b) => {
+        if (a === undefined) {
+          return -1;
+        }
+
+        if (a > b) {
+          return 1;
+        }
+        else if (a < b) {
+          return -1;
+        }
+        else {
+          return 0;
+        }
+      });
+
+      btree.set("50", 50);
+      btree.set("30", 30);
+      btree.set("15", 150);
+
+      const result = btree.delete(); // arg is undefined
+
+      expect(btree.size).toBe(3);
+      expect(result).toBe(false);
+    });
+
     it('Items should be deletable if exists', () => {
       const btree = initBtree();
 
@@ -373,7 +392,7 @@ describe("Base functionality", () => {
 
 });
 
-describe('Traverse functionality', () => {
+describe('Traverse', () => {
   function createBTree() {
     const btree = new BTree(comparator);
     const check = [
@@ -399,33 +418,31 @@ describe('Traverse functionality', () => {
     return { btree, check };
   }
 
-  describe("Iterator interface", () => {
+  describe.modern("Iterator interface", () => {
 
-    modernGlibOnly(() => {
-      it('Should have next method', () => {
-        const btree = createBTree().btree;
-        const iterator = btree[Symbol.iterator]();
+    it('has next method', () => {
+      const btree = createBTree().btree;
+      const iterator = btree[Symbol.iterator]();
 
-        expect(typeof iterator.next).toBe('function');
-      });
+      expect(typeof iterator.next).toBe('function');
+    });
 
-      it('Iterator should return value', () => {
-        const { btree } = createBTree();
-        const iterator = btree[Symbol.iterator]();
+    it('Iterator return value', () => {
+      const { btree } = createBTree();
+      const iterator = btree[Symbol.iterator]();
 
-        expect(typeof iterator.next()).toBe('object');
-      });
+      expect(typeof iterator.next()).toBe('object');
+    });
 
-      it('Iterator result should have correct fields', () => {
-        const { btree, check } = createBTree();
-        const iterator = btree[Symbol.iterator]();
+    it('Iterator result has correct fields', () => {
+      const { btree, check } = createBTree();
+      const iterator = btree[Symbol.iterator]();
 
-        const result = iterator.next();
+      const result = iterator.next();
 
-        expect(result.value[0]).toBe(check[0].key);
-        expect(result.value[1]).toBe(check[0].val);
-        expect(result.done).toBe(false);
-      });
+      expect(result.value[0]).toBe(check[0].key);
+      expect(result.value[1]).toBe(check[0].val);
+      expect(result.done).toBe(false);
     });
 
   });
@@ -480,14 +497,6 @@ describe('Traverse functionality', () => {
         });
       });
 
-
-
-
-
-
-
-
-
       it('has value first arg', () => {
         const btree = initBtree();
 
@@ -519,6 +528,16 @@ describe('Traverse functionality', () => {
 
         btree.forEachReverse((_val, _key, idx) => {
           expect(idx).toBe(i++);
+        });
+      });
+
+      it("callback should have 4th rev_idx arg", () => {
+        const btree = initBtree();
+
+        let i = btree.size;
+
+        btree.forEachReverse((_val, _key, _idx, rev_idx) => {
+          expect(rev_idx).toBe(--i);
         });
       });
 
@@ -568,22 +587,12 @@ describe('Traverse functionality', () => {
         });
       });
 
-      it('should throw error if few arguments', () => {
+      it('throw error if few arguments', () => {
         const btree = initBtree();
 
         expect(() => btree.forEachReverse()).toThrow(MSG_TOO_FEW_ARGUMENTS);
       });
-
-
-
-
-
-
-
-
-
     });
-
 
     describe('forEach()', () => {
       it('Should be iterable by forEach()', () => {
@@ -706,7 +715,7 @@ describe('Traverse functionality', () => {
 
     });
 
-    modernGlibOnly(() => {
+    describe.modern("Itrators", () => {
       it('Should be iterable by for-of', () => {
         const btree = new BTree(comparator);
 
@@ -859,34 +868,34 @@ describe('Traverse functionality', () => {
 describe('Extra methods', () => {
   describe("filter()", () => {
 
-    it("filter() should be callable", () => {
+    it("filter() is callable", () => {
       const btree = initBtree();
 
       expect(btree.filter.constructor.name).toBe("Function");
     });
 
-    it("filter() should return BTree", () => {
+    it("filter() returns BTree", () => {
       const btree = initBtree();
 
       expect(btree.filter(() => true).constructor.name)
         .toBe("BTree");
     });
 
-    it("filter() should return all items", () => {
+    it("filter() returns all items", () => {
       const btree = initBtree();
 
       expect(btree.filter(() => true).size)
         .toBe(3);
     });
 
-    it("filter() should return 0 items", () => {
+    it("filter() returns 0 items", () => {
       const btree = initBtree();
 
       expect(btree.filter(() => false).size)
         .toBe(0);
     });
 
-    it("filter() callback should have first value arg", () => {
+    it("filter() callback has first value arg", () => {
       const btree = initBtree();
 
       const it = initGenerator();
@@ -896,7 +905,7 @@ describe('Extra methods', () => {
       });
     });
 
-    it("filter() callback should have second key arg", () => {
+    it("filter() callback has second key arg", () => {
       const btree = initBtree();
 
       const it = initGenerator();
@@ -906,7 +915,7 @@ describe('Extra methods', () => {
       });
     });
 
-    it("filter() callback should have third idx arg", () => {
+    it("filter() callback has third idx arg", () => {
       const btree = initBtree();
 
       let i = 0;
@@ -915,10 +924,21 @@ describe('Extra methods', () => {
         expect(idx).toBe(i++);
       });
     });
+
+    it("filter() recives the context with basic function", () => {
+      const btree = initBtree();
+
+      btree.filter(function(val) {
+
+        expect(this.test).toBe("test");
+
+        return val;
+      }, { test: "test" });
+    });
   });
 
   describe('reduce()', () => {
-    it("reduce() should be callable & return valid value for numbers", () => {
+    it("reduce() is callable & returns valid value for numbers", () => {
       const btree = initBtree();
 
       const result = btree.reduce((acc, val, _key, _idx, _btree) => {
@@ -990,7 +1010,7 @@ describe('Extra methods', () => {
 
   describe('map()', () => {
 
-    it("map() should be callable & return array", () => {
+    it("map() is callable & returns an array", () => {
       const btree = initBtree();
 
       const array = btree.map(val => val);
@@ -999,7 +1019,7 @@ describe('Extra methods', () => {
       expect(array.length).toBe(3);
     });
 
-    it("map() callback should have first value arg", () => {
+    it("map() callback has first value arg", () => {
       const btree = initBtree();
 
       const array = btree.map(val => val);
@@ -1008,7 +1028,7 @@ describe('Extra methods', () => {
       expect(array.length).toBe(3);
     });
 
-    it("map() callback should have second key arg", () => {
+    it("map() callback has second key arg", () => {
       const btree = initBtree();
 
       const array = btree.map((_val, key) => key);
@@ -1017,7 +1037,7 @@ describe('Extra methods', () => {
       expect(array.length).toBe(3);
     });
 
-    it("map() callback should have third idx arg", () => {
+    it("map() callback has third idx arg", () => {
       const btree = initBtree();
 
       const array = btree.map((_val, _key, idx) => idx);
@@ -1029,7 +1049,7 @@ describe('Extra methods', () => {
       }
     });
 
-    it("map() callback should have fourth bTree arg", () => {
+    it("map() callback has fourth bTree arg", () => {
       const btree = initBtree();
 
       const array = btree.map((_val, _key, _idx, btree) => btree);
@@ -1039,7 +1059,7 @@ describe('Extra methods', () => {
       expect(array[1].get("15")).toBe(150);
     });
 
-    it("map() should recive context with basic function", () => {
+    it("map() recives the context with basic function", () => {
       const btree = initBtree();
 
       btree.map(function(val) {
@@ -1050,7 +1070,7 @@ describe('Extra methods', () => {
       }, { test: "test" });
     });
 
-    it("map() should not recive context with arrow function", () => {
+    it("map() does not recive context with arrow function", () => {
       const btree = initBtree();
 
       btree.map((val) => {
@@ -1062,7 +1082,7 @@ describe('Extra methods', () => {
       }, { test: "test" });
     });
 
-    it("map() should have Object context with arrow function", () => {
+    it("map() has Object context with arrow function", () => {
       const btree = initBtree();
 
       btree.map((val) => {
@@ -1073,7 +1093,7 @@ describe('Extra methods', () => {
       });
     });
 
-    it("map() should have global context with basic function", () => {
+    it("map() has global context with basic function", () => {
       const btree = initBtree();
 
       btree.map(function(val) {
@@ -1085,64 +1105,118 @@ describe('Extra methods', () => {
       });
     });
 
-    it('map() should throw error if few arguments', () => {
+    it('map() throw error if few arguments', () => {
       const btree = initBtree();
 
       expect(() => btree.map()).toThrow(MSG_TOO_FEW_ARGUMENTS);
     });
 
-  });
+    it('has the ability to remove node in the callback', () => {
+      const btree = initBtree();
 
-  modernGlibOnly(() => {
-    describe("first()", () => {
+      const result = btree.map((v) => {
+        btree.delete("30");
+
+        return v;
+      });
+
+      expect(result.length).toBe(3);
+      expect(result[1]).toBe(50);
+      expect(result[2]).toBeUndefined();
+    });
+
+    describe.modern("Extraction methods", () => {
       let btree;
 
-      beforeAll(() => {
+      beforeEach(() => {
         btree = initBtree();
       });
 
-      it("is function", () => {
-        expect(typeof btree.first).toBe("function");
+      describe("getKeys()", () => {
+        it('method callable', () => {
+          expect(typeof btree.getKeys).toBe("function");
+        });
+
+        it('result is array', () => {
+          const result = btree.getKeys();
+
+          expect(result.constructor.name).toBe("Array");
+        });
+
+        it('result is array of numbers', () => {
+          const result = btree.getKeys();
+
+          expect(result[0]).toBe("15");
+        });
+
+        it('return expected result', () => {
+          const arr = [
+            "15", "30", "50"
+          ];
+
+          const result = btree.getKeys();
+          const it = arr[Symbol.iterator]();
+
+          expect(result.length).toBe(3);
+
+          for (const item of result) {
+            const i = it.next().value;
+
+            expect(item).toBe(i);
+          }
+        });
+
+        it('return expected result for empty tree', () => {
+          btree = new BTree(comparator);
+
+          const result = btree.getKeys();
+
+          expect(result.length).toBe(0);
+        });
       });
 
-      it("return expected result", () => {
-        const { key, value } = btree.first();
+      describe("getValues()", () => {
+        it('method callable', () => {
+          expect(typeof btree.getValues).toBe("function");
+        });
 
-        expect(key).toBe("15");
-        expect(value).toBe(150);
-      });
+        it('result is array', () => {
+          const result = btree.getValues();
 
-      it("return undef if not found", () => {
-        const result = new BTree(comparator);
+          expect(result.constructor.name).toBe("Array");
+        });
 
-        expect(result.first()).toBeUndefined();
-      });
-    });
+        it('result is array of numbers', () => {
+          const result = btree.getValues();
 
-    describe("last()", () => {
-      let btree;
+          expect(result[0]).toBe(150);
+        });
 
-      beforeAll(() => {
-        btree = initBtree();
-      });
+        it('return expected result', () => {
+          const arr = [
+            150, 30, 50
+          ];
 
-      it("is object", () => {
-        expect(typeof btree.last).toBe("function");
-      });
+          const result = btree.getValues();
+          const it = arr[Symbol.iterator]();
 
-      it("return expected result", () => {
-        const { key, value } = btree.last();
+          expect(result.length).toBe(3);
 
-        expect(key).toBe("50");
-        expect(value).toBe(50);
-      });
+          for (const item of result) {
+            const i = it.next().value;
 
-      it("return undef if not found", () => {
-        const result = new BTree(comparator);
+            expect(item).toBe(i);
+          }
+        });
 
-        expect(result.last()).toBeUndefined();
+        it('return expected result for empty tree', () => {
+          btree = new BTree(comparator);
+
+          const result = btree.getValues();
+
+          expect(result.length).toBe(0);
+        });
       });
     });
   });
-
 });
