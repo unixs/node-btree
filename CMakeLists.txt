@@ -46,4 +46,4 @@ set(COVERAGE_LINES_PERCENT 90)
 
 add_test(
 	NAME coverage
-	COMMAND "gcovr" "-s" "-r" ".." "--print-summary" "--fail-under-line" ${COVERAGE_LINES_PERCENT} ".")
+	COMMAND "gcovr" "-sp" "-r" ".." "--print-summary" "--fail-under-line" ${COVERAGE_LINES_PERCENT} ".")

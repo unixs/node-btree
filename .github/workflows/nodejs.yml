@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [ubuntu-latest, macos-latest]
+        platform: [ubuntu-latest, ubuntu-20.04, macos-latest]
         node-version: [14.x, 16.x, 18.x]
     runs-on: ${{ matrix.platform }}
 
@@ -17,10 +17,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install MacOS system deps
-        if: ${{matrix.platform == 'macos-latest'}}
+        if: ${{contains(matrix.platform, 'macos') }}
         run: brew update && brew install pkg-config cmake glib gcovr
       - name: Install Ubuntu system deps
-        if: ${{matrix.platform == 'ubuntu-latest'}}
+        if: ${{contains(matrix.platform, 'ubuntu') }}
         run: sudo apt update && sudo apt -y install gcovr
       - run: npm ci
       - run: npm test

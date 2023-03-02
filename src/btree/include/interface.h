@@ -48,13 +48,8 @@ esForeach(napi_env env, napi_callback_info cbInfo);
 napi_value
 esForeachReverse(napi_env env, napi_callback_info cbInfo);
 
-napi_value
-esToMap(napi_env env, napi_callback_info cbInfo);
-
-napi_value
-esToSet(napi_env env, napi_callback_info cbInfo);
-
 #ifdef HAS_GTREE_NODE
+  #include <interface_conversion.h>
   #include <intreface_iterators.h>
   #include <interface_search.h>
 #endif

@@ -1,4 +1,4 @@
-const { BTree } = require("../lib");
+const { BTree, GLIB_VERSION: { hasGTreeNode } } = require("../lib");
 
 function comparator(a, b) {
   if (a > b) {
@@ -25,11 +25,66 @@ function initBtree() {
   return btree;
 }
 
-describe("Search methods", () => {
+/**
+ * Describe cases for GLIB version >= 2.68
+ */
+describe["modern"] = hasGTreeNode() ? describe : describe.skip;
+
+describe.modern("Search methods", () => {
   let btree;
 
   beforeAll(() => {
     btree = initBtree();
+  });
+
+  describe("first()", () => {
+    let btree;
+
+    beforeAll(() => {
+      btree = initBtree();
+    });
+
+    it("is function", () => {
+      expect(typeof btree.first).toBe("function");
+    });
+
+    it("return expected result", () => {
+      const { key, value } = btree.first();
+
+      expect(key).toBe(11);
+      expect(value).toBe(110);
+    });
+
+    it("return undef if not found", () => {
+      const result = new BTree(comparator);
+
+      expect(result.first()).toBeUndefined();
+    });
+  });
+
+  describe("last()", () => {
+    let btree;
+
+    beforeAll(() => {
+      btree = initBtree();
+    });
+
+    it("is object", () => {
+      expect(typeof btree.last).toBe("function");
+    });
+
+    it("return expected result", () => {
+      const { key, value } = btree.last();
+
+      expect(key).toBe(50);
+      expect(value).toBe(500);
+    });
+
+    it("return undef if not found", () => {
+      const result = new BTree(comparator);
+
+      expect(result.last()).toBeUndefined();
+    });
   });
 
   describe("before", () => {

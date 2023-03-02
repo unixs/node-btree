@@ -18,6 +18,14 @@ nativeInsertNode(napi_env env, napi_value esBtree, napi_value box);
 #define getNodeEsKey(env, node) getNodeEsField(env, node, KEY)
 #define getNodeEsValue(env, node) getNodeEsField(env, node, VALUE)
 
+#define CHECK_TREE_CORRUPT(env, node)                                          \
+  if (node == NULL) {                                                          \
+    NAPI_CALL(env, false,                                                      \
+      napi_throw_error(env, NULL, msgCorrupt));                                \
+                                                                               \
+    return true;                                                               \
+  }
+
 napi_value
 getEsUndef(napi_env env);
 
@@ -27,23 +35,11 @@ getEsNull(napi_env env);
 napi_value
 getEsGlobal(napi_env env);
 
-napi_value
-getNodeEsObject(napi_env env, GTreeNode *g_node);
-
-napi_value
-getNodeEsField(napi_env env, GTreeNode *g_node, const char *field);
-
-napi_value
-getNodeEsFieldPair(napi_env env, GTreeNode *g_node);
-
 GPtrArray*
 gtreeToPtrArray(GTree *gtree);
 
 napi_value
 unrefBtreeNodeEsObject(napi_env env, napi_ref ref, napi_value *key, napi_value *value);
-
-GTreeNode*
-btreeLookup(napi_env env, BTree_t *gtree, napi_value key);
 
 napi_value
 cloneBtreeWrapper(napi_env env, napi_value orig, BTree_t **btree);
@@ -53,9 +49,6 @@ cloneInternalEsObject(napi_env env, napi_ref ref);
 
 napi_ref
 cloneInternalEsRef(napi_env env, napi_ref ref);
-
-BTreeNode
-cloneBTreeNode(napi_env env, BTree_t *btree, GTreeNode *node);
 
 
 // Inline tools
@@ -88,11 +81,30 @@ compareBTreeNodes(BTreeNode a, BTreeNode b, BTree_t *btree) {
   return nativeComparator((gconstpointer) a, (gconstpointer) b, (gpointer) btree);
 }
 
+#ifdef HAS_GTREE_NODE
+
+GTreeNode*
+btreeLookup(napi_env env, BTree_t *gtree, napi_value key);
+
+napi_value
+getNodeEsObject(napi_env env, GTreeNode *g_node);
+
+napi_value
+getNodeEsField(napi_env env, GTreeNode *g_node, const char *field);
+
+napi_value
+getNodeEsFieldPair(napi_env env, GTreeNode *g_node);
+
+
+BTreeNode
+cloneBTreeNode(napi_env env, BTree_t *btree, GTreeNode *node);
+
 inline gint
 compareGTreeNodes(GTreeNode *a, GTreeNode *b, BTree_t *btree) {
   return compareBTreeNodes(getEsGTreeNode(a), getEsGTreeNode(b), btree);
 }
 
+#endif // HAS_GTREE_NODE
 
 #endif //_CORE_H_
 

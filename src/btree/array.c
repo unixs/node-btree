@@ -12,13 +12,6 @@ nativeBTreeFilter(gpointer key, gpointer value, gpointer data) {
 
   napi_value esNode, esKey, esValue, esIdx, cbResult;
 
-  if (node == NULL) {
-    NAPI_CALL(env, false,
-      napi_throw_error(env, NULL, msgCorrupt));
-
-    return true;
-  }
-
   NAPI_CALL(env, false,
     napi_get_reference_value(env, node->esKeyValue, &esNode));
 
@@ -90,13 +83,6 @@ nativeBTreeReduce(gpointer key, gpointer value, gpointer data) {
 
   napi_value esNode, esKey, esValue, esIdx, cbResult;
 
-  if (node == NULL) {
-    NAPI_CALL(env, false,
-      napi_throw_error(env, NULL, msgCorrupt));
-
-    return true;
-  }
-
   NAPI_CALL(env, false,
     napi_get_reference_value(env, node->esKeyValue, &esNode));
 
@@ -137,13 +123,6 @@ nativeBTreeMap(gpointer key, gpointer value, gpointer data) {
   napi_env env = ctxt->bTree->env;
 
   napi_value esNode, esKey, esValue, esIdx, cbResult;
-
-  if (node == NULL) {
-    NAPI_CALL(env, false,
-      napi_throw_error(env, NULL, msgCorrupt));
-
-    return true;
-  }
 
   NAPI_CALL(env, false,
     napi_get_reference_value(env, node->esKeyValue, &esNode));

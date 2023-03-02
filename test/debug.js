@@ -1,19 +1,36 @@
-const { BTree, GLIB_VERSION } = require("../lib");
+const { BTree } = require("../lib");
+
+function comparator(a, b) {
+  if (a > b) {
+    return 1;
+  }
+  else if (a < b) {
+    return -1;
+  }
+  else {
+    return 0;
+  }
+}
+
 
 function initBtree() {
-  const btree = new BTree((a, b) => a - b);
+  const btree = new BTree(comparator);
 
-  btree.set(50, 50);
-  btree.set(30, 30);
-  btree.set(15, 15);
-  btree.set(60, 60);
-  btree.set(40, 40);
-  btree.set(150, 150);
+  btree.set(50, 500);
+  btree.set(30, 300);
+  btree.set(15, 150);
+  btree.set(60, 600);
+  btree.set(40, 400);
+  btree.set(150, 1500);
 
   return btree;
 }
 
 const btree = initBtree();
 
-console.log(btree.toMap());
-console.log(btree.between(60, 15, true).toMap());
+console.log(btree.toMap(), btree.size);
+
+btree.delete();
+
+console.log(btree.toMap(), btree.size);
+
