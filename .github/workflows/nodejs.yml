@@ -22,11 +22,7 @@ jobs:
       - name: Install Ubuntu system deps
         if: ${{contains(matrix.platform, 'ubuntu') }}
         run: sudo apt update && sudo apt -y install gcovr
-      - run: npm ci
-      - run: npm test
-      - run: npm run build-debug
-      - run: NODE_ENV=development npm test
-      - run: ctest --test-dir build -VV
+      - run: ./test/test.sh
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

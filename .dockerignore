@@ -1,0 +1,10 @@
+.github/
+.vscode/
+build/
+coverage/
+docker/
+node_modules/
+tmp/
+.editorconfig
+.eslintrc.yml
+.gitignore

@@ -4,11 +4,9 @@
     {
       "type": "shell",
       "label": "Build debug extension",
-      "command": "npx",
+      "command": "make",
       "args": [
-        "cmake-js",
-        "rebuild",
-        "-D"
+        "build-debug"
       ],
       "problemMatcher": {
         "base": "$gcc",
@@ -17,68 +15,152 @@
           "${workspaceRoot}"
         ]
       },
-      "group": "build"
-    },
-    {
-      "type": "shell",
-      "label": "Build extension",
-      "command": "npx",
-      "args": [
-        "cmake-js",
-        "rebuild"
-      ],
-      "problemMatcher": {
-        "base": "$gcc",
-        "fileLocation": [
-          "relative",
-          "${workspaceRoot}"
-        ]
-      },
-      "group": "build"
-    },
-    {
-      "type": "npm",
-      "label": "Jest tests",
-      "script": "test",
-      "group": "test",
-      "dependsOn":[
-        "Build debug extension"
-      ],
-      "options": {
-        "env": {
-          "NODE_ENV": "development"
-        }
+      "group": {
+        "kind": "build",
+        "isDefault": true
       }
     },
     {
       "type": "shell",
-      "label": "Coverage report",
-      "command": "ctest",
+      "label": "Build extension",
+      "command": "make",
       "args": [
-        "-VV",
-        "--test-dir",
-        "build"
+        "rebuild",
       ],
-      "group": "test",
-      "problemMatcher": [],
-      "dependsOn":[
-        "Jest tests"
-      ]
+      "problemMatcher": {
+        "base": "$gcc",
+        "fileLocation": [
+          "relative",
+          "${workspaceRoot}"
+        ]
+      },
+      "group": "build"
+    },
+    {
+      "type": "shell",
+      "label": "Jest tests",
+      "command": "make",
+      "args": [
+        "test-jest"
+      ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Jest tests debug",
+      "command": "make",
+      "args": [
+        "test-jest-debug"
+      ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Coverage report",
+      "command": "make",
+      "args": [
+        "coverage",
+      ],
+      "group": "test"
     },
     {
       "type": "shell",
       "label": "Coverage html report",
-      "command": "gcovr",
+      "command": "make",
       "args": [
-        "-r", ".", "--print-summary", "--html", "--html-details",
-        "-o", "coverage/coverage.html",
-        "build"
+        "coverage-html",
       ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Build Docker legacy testing image",
+      "command": "make",
+      "args": [
+        "docker-build-legacy",
+      ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Build Docker latest testing image",
+      "command": "make",
+      "args": [
+        "docker-build-latest",
+      ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Build all Docker testing images",
       "group": "test",
-      "problemMatcher": [],
-      "dependsOn":[
-        "Jest tests"
+      "command": "make",
+      "args": [
+        "docker-build"
       ]
+    },
+    {
+      "type": "shell",
+      "label": "Push Docker legacy testing image",
+      "command": "make",
+      "args": [
+        "docker-push-legacy"
+      ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Push Docker latest testing image",
+      "command": "make",
+      "args": [
+        "docker-push-latest"
+      ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Push all Docker testing images",
+      "command": "make",
+      "group": "test",
+      "args": [
+        "docker-push"
+      ]
+    },
+    {
+      "type": "shell",
+      "label": "Run legacy tests in docker",
+      "command": "make",
+      "args": [
+        "docker-test-legacy",
+      ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Run latest tests in docker",
+      "command": "make",
+      "args": [
+        "docker-test-latest"
+      ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Run all tests in docker",
+      "command": "make",
+      "args": [
+        "docker-test"
+      ],
+      "group": "test"
+    },
+    {
+      "type": "shell",
+      "label": "Run all tests",
+      "command": "make",
+      "args": [
+        "test"
+      ],
+      "group": "test"
     }
   ]
 }

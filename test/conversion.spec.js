@@ -1,4 +1,4 @@
-const { BTree, GLIB_VERSION: { hasGTreeNode } } = require("../lib");
+const { BTree, GLIB_VERSION: { hasGTreeNode } } = require("..");
 
 describe["modern"] = hasGTreeNode() ? describe : describe.skip;
 

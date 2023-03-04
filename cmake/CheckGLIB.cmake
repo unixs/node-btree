@@ -20,6 +20,6 @@ if(HAS_GTREE_NODE)
 	add_compile_definitions(HAS_GTREE_NODE)
 else()
 	message(WARNING
-		"Available GLib is not support direct node access.
+		"Available GLib does not support direct node access.
 		Version < 2.68.")
 endif()
