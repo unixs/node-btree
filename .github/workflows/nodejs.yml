@@ -17,7 +17,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: deps
-        run: npm ci
+        run: winget search glib
+      - run: npm ci
       - name: build
         run: npx cmake-js rebuild -D
       - name: test
