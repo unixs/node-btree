@@ -39,9 +39,6 @@
     "x64",
     "arm64"
   ],
-  "os": [
-    "!win32"
-  ],
   "dependencies": {
     "cmake-js": "~7.2"
   },
