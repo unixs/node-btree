@@ -16,9 +16,7 @@ list(APPEND LIB_OBJECTS
 	$<TARGET_OBJECTS:array>
 	$<TARGET_OBJECTS:map>
 	$<TARGET_OBJECTS:specific>
-	$<TARGET_OBJECTS:static>
-	$<TARGET_OBJECTS:type>
-	$<TARGET_OBJECTS:comparator>)
+	$<TARGET_OBJECTS:static>)
 
 if(HAS_GTREE_NODE)
 	add_library(iterators 			OBJECT iterators.c)

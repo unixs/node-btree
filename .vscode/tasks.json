@@ -6,7 +6,7 @@
       "label": "Build debug extension",
       "command": "make",
       "args": [
-        "build-debug"
+        "rebuild-debug"
       ],
       "problemMatcher": {
         "base": "$gcc",

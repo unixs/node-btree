@@ -61,12 +61,13 @@ esGlibVersionPatch(napi_env env, napi_callback_info cbInfo) {
 static napi_value
 esHasGTreeNode(napi_env env, napi_callback_info cbInfo) {
   napi_value result;
+  bool result = true;
 
-  #ifdef HAS_GTREE_NODE
-    NAPI_CALL(env, false, napi_get_boolean(env, true, &result));
-  #else
-    NAPI_CALL(env, false, napi_get_boolean(env, false, &result));
+  #ifndef HAS_GTREE_NODE
+    result = false;
   #endif
+
+  NAPI_CALL(env, false, napi_get_boolean(env, result, &result));
 
   return result;
 }

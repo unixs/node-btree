@@ -1,8 +1,9 @@
-const { BTree, GLIB_VERSION: { hasGTreeNode } } = require("..");
+import { BTree, GLIB_VERSION } from "..";
 
-describe["modern"] = hasGTreeNode() ? describe : describe.skip;
+// @ts-ignore
+describe["modern"] = GLIB_VERSION.hasGTreeNode() ? describe : describe.skip;
 
-function comparator(a, b) {
+function comparator(a: number, b: number) {
   if (a > b) {
     return 1;
   }
@@ -15,7 +16,7 @@ function comparator(a, b) {
 }
 
 function initBtree() {
-  const btree = new BTree(comparator);
+  const btree = new BTree<number, number>(comparator);
 
   btree.set(10, 100);
   btree.set(20, 200);
@@ -27,7 +28,7 @@ function initBtree() {
 }
 
 describe("Conversion methods", () => {
-  let btree;
+  let btree: BTree<number, number>;
 
   beforeEach(() => {
     btree = initBtree();
@@ -35,6 +36,7 @@ describe("Conversion methods", () => {
 
   it.todo("Dummy test");
 
+// @ts-ignore
   describe.modern("Modern methods", () => {
 
     describe("toMap()", () => {

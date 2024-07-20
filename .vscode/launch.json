@@ -35,7 +35,7 @@
       "name": "(gdb) Jest",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/usr/local/bin/node",
+      "program": "/opt/homebrew/opt/node@18/bin/node",
       "args": [
         "--expose-gc",
         "node_modules/.bin/jest",
@@ -44,10 +44,21 @@
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "development"
+        }
+      ],
       "externalConsole": false,
-      "MIMode": "lldb",
-      "sourceFileMap": {
+      "linux": {
+        "MIMode": "gdb",
+        "targetArchitecture": "x64"
+      },
+      "osx": {
+        "MIMode": "lldb",
+        "targetArchitecture": "arm64"
+      },      "sourceFileMap": {
         //"<source-path>": "<target-path>"
       },
       "setupCommands": [

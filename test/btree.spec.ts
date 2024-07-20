@@ -1,14 +1,14 @@
-const { BTree, GLIB_VERSION: { hasGTreeNode } } = require("..");
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { BTree, GLIB_VERSION } from "..";
 
-/**
- * Describe cases for GLIB version >= 2.68
- */
-describe["modern"] = hasGTreeNode() ? describe : describe.skip;
+Object.defineProperty(describe, "modern", {
+  value: GLIB_VERSION.hasGTreeNode() ? describe : describe.skip,
+});
 
 const MSG_TOO_FEW_ARGUMENTS = "Too few arguments.";
 
-function comparator(a, b) {
+function comparator(a: string, b: string) {
   if (a > b) {
     return 1;
   }
@@ -21,7 +21,7 @@ function comparator(a, b) {
 }
 
 function initBtree() {
-  const btree = new BTree(comparator);
+  const btree = new BTree<string, number>(comparator);
 
   btree.set("50", 50);
   btree.set("30", 30);
@@ -33,11 +33,11 @@ function initBtree() {
 function* initGenerator() {
   yield { key: "15", value: 150 };
   yield { key: "30", value: 30 };
-  yield { key: "50", value: 50 };
+
+  return { key: "50", value: 50 };
 }
 
 describe("Inheritance", () => {
-
   it("Create BTree instance", () => {
     const btree = new BTree(comparator);
 
@@ -50,19 +50,19 @@ describe("Inheritance", () => {
     expect(btree).toBeInstanceOf(BTree);
   });
 
-  it('Constructor should throw error without arguments', () => {
+  it("Constructor should throw error without arguments", () => {
+    // @ts-expect-error 2554
     expect(() => new BTree()).toThrow(MSG_TOO_FEW_ARGUMENTS);
   });
 
-  it('Constructor call should throw error without arguments', () => {
+  it("Constructor call should throw error without arguments", () => {
+    // @ts-expect-error 2554
     expect(() => BTree()).toThrow(MSG_TOO_FEW_ARGUMENTS);
   });
 });
 
 describe("Static methods", () => {
-
   describe("BTree.from()", () => {
-
     it("from() method should be", () => {
       expect(BTree.from.constructor.name).toBe("Function");
     });
@@ -74,38 +74,37 @@ describe("Static methods", () => {
       expect(btree.size).toBe(0);
     });
 
-    it('from() should throw error without args', () => {
+    it("from() should throw error without args", () => {
+      // @ts-expect-error 2554
       expect(() => BTree.from()).toThrow(MSG_TOO_FEW_ARGUMENTS);
     });
 
-    it('from() should throw error if comparator is bad', () => {
-      expect(() => BTree.from([], []))
-        .toThrow("First arg must be comparator qsort() like function");
+    it("from() should throw error if comparator is bad", () => {
+      // @ts-expect-error 2345
+      expect(() => BTree.from([], [])).toThrow("First arg must be comparator qsort() like function");
     });
 
-    it('from() should throw error if second arg is bad', () => {
-      expect(() => BTree.from(comparator, ''))
-        .toThrow("Second arg must be Array, Map or iterable");
+    it("from() should throw error if second arg is bad", () => {
+      expect(() => BTree.from(comparator, "")).toThrow("Second arg must be Array, Map or iterable");
     });
-
 
     it("from() key-value-able objects array", () => {
       const arr = [
         {
           key: 10,
           value: "100",
-          a: "a"
+          a: "a",
         },
         {
           key: 20,
           value: "200",
-          b: "b"
+          b: "b",
         },
         {
           key: 30,
           value: "300",
-          c: "c"
-        }
+          c: "c",
+        },
       ];
 
       const btree = BTree.from(comparator, arr);
@@ -115,13 +114,13 @@ describe("Static methods", () => {
       expect(btree.get(20)).toBe("200");
     });
 
-    it('from() array of arrays [key, value]', () => {
+    it("from() array of arrays [key, value]", () => {
       const arr = [
         [10, "10"],
         [30, "30"],
         [80, "80"],
         [20, "20"],
-        [50, "50"]
+        [50, "50"],
       ];
 
       const btree = BTree.from(comparator, arr);
@@ -131,19 +130,19 @@ describe("Static methods", () => {
       expect(btree.get(30)).toBe("30");
     });
 
-    it('from() mixed array of arrays & objects', () => {
+    it("from() mixed array of arrays & objects", () => {
       const arr = [
         [10, "10"],
         {
           key: 30,
-          value: "30"
+          value: "30",
         },
         [80, "80"],
         {
           key: 20,
-          value: "20"
+          value: "20",
         },
-        [50, "50"]
+        [50, "50"],
       ];
 
       const btree = BTree.from(comparator, arr);
@@ -154,13 +153,12 @@ describe("Static methods", () => {
       expect(btree.get(50)).toBe("50");
     });
 
-    it('from() generator', () => {
-
+    it("from() generator", () => {
       function* generator() {
         for (let i = 0; i < 1000; i++) {
           yield {
             key: i,
-            value: `${i} bla-bla-bla`
+            value: `${i} bla-bla-bla`,
           };
         }
       }
@@ -175,7 +173,7 @@ describe("Static methods", () => {
 
     // Temporary skipped
     // BUG: https://github.com/facebook/jest/issues/2549
-    it.skip('from() Map instance', () => {
+    it.skip("from() Map instance", () => {
       const map = new Map();
 
       map.set(10, "10");
@@ -194,10 +192,8 @@ describe("Static methods", () => {
 });
 
 describe("Base functionality", () => {
-
   describe("BTree specific", () => {
-
-    it('Should have correct height field without nodes', () => {
+    it("Should have correct height field without nodes", () => {
       const btree = new BTree(comparator);
 
       expect(btree.height).toBe(0);
@@ -208,11 +204,9 @@ describe("Base functionality", () => {
 
       expect(btree.height).toBe(2);
     });
-
   });
 
   describe("Map() interface", () => {
-
     it("Check size property if empty", () => {
       const btree = new BTree(comparator);
 
@@ -225,7 +219,7 @@ describe("Base functionality", () => {
       expect(btree.size).toBe(3);
     });
 
-    it('get method should be callable without args', () => {
+    it("get method should be callable without args", () => {
       const btree = new BTree(comparator);
 
       expect(btree.get()).toBe(undefined);
@@ -234,7 +228,7 @@ describe("Base functionality", () => {
     it("Check get method (number => string)", () => {
       const btree = initBtree();
 
-      expect(btree.get(15)).toBe(150);
+      expect(btree.get("15")).toBe(150);
     });
 
     it("Check get method (string => string)", () => {
@@ -246,13 +240,13 @@ describe("Base functionality", () => {
     it("Check get method (string => number)", () => {
       const btree = new BTree(comparator);
 
-      btree.set(50, 50);
-      btree.set(30, 30);
-      btree.set(15, 150);
+      btree.set("50", 50);
+      btree.set("30", 30);
+      btree.set("15", 150);
 
       expect(btree.get("15")).toBe(150);
     });
-    it('Should be addable if key exists', () => {
+    it("Should be addable if key exists", () => {
       const btree = initBtree();
 
       btree.set("30", 40);
@@ -260,7 +254,7 @@ describe("Base functionality", () => {
       expect(btree.get("30")).toBe(40);
     });
 
-    it('Should accept set() without args', () => {
+    it("Should accept set() without args", () => {
       const btree = new BTree(comparator);
 
       btree.set();
@@ -270,33 +264,33 @@ describe("Base functionality", () => {
       expect(btree.get() === undefined).toBeTruthy();
     });
 
-    it('Should accept set() with one first arg', () => {
+    it("Should accept set() with one first arg", () => {
       const btree = new BTree(comparator);
 
-      btree.set(1);
+      btree.set("1");
 
       expect(btree.size).toBe(1);
-      expect(btree.get(1) === undefined).toBeTruthy();
+      expect(btree.get("1") === undefined).toBeTruthy();
     });
 
-    it('Values should be replaceable by set()', () => {
+    it("Values should be replaceable by set()", () => {
       const btree = new BTree(comparator);
 
-      btree.set(1, 2);
-      btree.set(3, 4);
-      btree.set(5, 6);
+      btree.set("1", 2);
+      btree.set("3", 4);
+      btree.set("5", 6);
 
       expect(btree.size).toBe(3);
-      expect(btree.get(3)).toBe(4);
+      expect(btree.get("3")).toBe(4);
 
-      btree.set(3, 7);
+      btree.set("3", 7);
 
       expect(btree.size).toBe(3);
-      expect(btree.get(3)).toBe(7);
+      expect(btree.get("3")).toBe(7);
     });
 
     it("deletable if arg is missing", () => {
-      const btree = new BTree((a, b) => {
+      const btree = new BTree((a: string, b: string) => {
         if (a === undefined) {
           return -1;
         }
@@ -316,13 +310,14 @@ describe("Base functionality", () => {
       btree.set("30", 30);
       btree.set("15", 150);
 
+      // @ts-expect-error 2554
       const result = btree.delete(); // arg is undefined
 
       expect(btree.size).toBe(3);
       expect(result).toBe(false);
     });
 
-    it('Items should be deletable if exists', () => {
+    it("Items should be deletable if exists", () => {
       const btree = initBtree();
 
       const result = btree.delete("30");
@@ -331,16 +326,16 @@ describe("Base functionality", () => {
       expect(btree.size).toBe(2);
     });
 
-    it('Items should be deletable if not exists', () => {
+    it("Items should be deletable if not exists", () => {
       const btree = initBtree();
 
-      const result = btree.delete(31);
+      const result = btree.delete("31");
 
       expect(result).toBe(false);
       expect(btree.size).toBe(3);
     });
 
-    it('Should be clearable by clear()', () => {
+    it("Should be clearable by clear()", () => {
       const btree = initBtree();
 
       expect(btree.size).toBe(3);
@@ -350,7 +345,7 @@ describe("Base functionality", () => {
       expect(btree.size).toBe(0);
     });
 
-    it('Should be processable after clear', () => {
+    it("Should be processable after clear", () => {
       const btree = initBtree();
 
       expect(btree.size).toBe(3);
@@ -364,7 +359,7 @@ describe("Base functionality", () => {
       expect(btree.size).toBe(1);
     });
 
-    it('has() method should be callable', () => {
+    it("has() method should be callable", () => {
       const btree = initBtree();
 
       expect(btree.size).toBe(3);
@@ -373,40 +368,41 @@ describe("Base functionality", () => {
       expect(btree.has("100500")).toBe(false);
     });
 
-    it('has() method should be callable without args', () => {
+    it("has() method should be callable without args", () => {
       const btree = initBtree();
 
       expect(btree.size).toBe(3);
 
+      // @ts-expect-error 2554
       expect(btree.has()).toBe(true);
     });
 
-    it('has() method should be callable without args and find undefined', () => {
+    it("has() method should be callable without args and find undefined", () => {
       const btree = initBtree();
 
       btree.set();
 
+      // @ts-expect-error 2554
       expect(btree.has()).toBe(true);
     });
   });
-
 });
 
-describe('Traverse', () => {
+describe("Traverse", () => {
   function createBTree() {
     const btree = new BTree(comparator);
     const check = [
       {
         key: "15",
-        val: 150
+        val: 150,
       },
       {
         key: "30",
-        val: 30
+        val: 30,
       },
       {
         key: "50",
-        val: 51
+        val: 51,
       },
     ];
 
@@ -414,27 +410,26 @@ describe('Traverse', () => {
     btree.set("15", 150);
     btree.set("30", 30);
 
-
     return { btree, check };
   }
 
+  // @ts-expect-error 2339
   describe.modern("Iterator interface", () => {
-
-    it('has next method', () => {
+    it("has next method", () => {
       const btree = createBTree().btree;
       const iterator = btree[Symbol.iterator]();
 
-      expect(typeof iterator.next).toBe('function');
+      expect(typeof iterator.next).toBe("function");
     });
 
-    it('Iterator return value', () => {
+    it("Iterator return value", () => {
       const { btree } = createBTree();
       const iterator = btree[Symbol.iterator]();
 
-      expect(typeof iterator.next()).toBe('object');
+      expect(typeof iterator.next()).toBe("object");
     });
 
-    it('Iterator result has correct fields', () => {
+    it("Iterator result has correct fields", () => {
       const { btree, check } = createBTree();
       const iterator = btree[Symbol.iterator]();
 
@@ -444,12 +439,10 @@ describe('Traverse', () => {
       expect(result.value[1]).toBe(check[0].val);
       expect(result.done).toBe(false);
     });
-
   });
 
   describe("Iteration methods", () => {
-
-    describe('forEachReverse()', () => {
+    describe("forEachReverse()", () => {
       it("is function", () => {
         const btree = new BTree(comparator);
 
@@ -457,31 +450,45 @@ describe('Traverse', () => {
       });
 
       it("iterable by forEachReverse()", () => {
-        const btree = new BTree(comparator);
+        const btree = new BTree<string, number>(comparator);
 
         btree.set("50", 51);
         btree.set("15", 150);
         btree.set("30", 30);
 
-
-        function* check() {
+        function* check(): Generator<
+          {
+            key: string;
+            val: number;
+            idx: number;
+            revIdx: number;
+          },
+          {
+            key: string;
+            val: number;
+            idx: number;
+            revIdx: number;
+          },
+          unknown
+        > {
           yield {
             key: "50",
             val: 51,
             idx: 0,
-            revIdx: 2
+            revIdx: 2,
           };
           yield {
             key: "30",
             val: 30,
             idx: 1,
-            revIdx: 1
+            revIdx: 1,
           };
-          yield {
+
+          return {
             key: "15",
             val: 150,
             idx: 2,
-            revIdx: 0
+            revIdx: 0,
           };
         }
 
@@ -497,19 +504,19 @@ describe('Traverse', () => {
         });
       });
 
-      it('has value first arg', () => {
+      it("has value first arg", () => {
         const btree = initBtree();
 
         const check = [50, 30, 150];
 
         const checkIterator = check[Symbol.iterator]();
 
-        btree.forEachReverse((val) => {
+        btree.forEachReverse(val => {
           expect(val).toBe(checkIterator.next().value);
         });
       });
 
-      it('has key second arg', () => {
+      it("has key second arg", () => {
         const btree = initBtree();
 
         const check = ["50", "30", "15"];
@@ -544,31 +551,35 @@ describe('Traverse', () => {
       it("recive context with basic function", () => {
         const btree = initBtree();
 
-        btree.forEachReverse(function(val) {
+        btree.forEachReverse(
+          function (this: { something: string }, val) {
+            expect(this.something).toBe("test");
 
-          expect(this.something).toBe("test");
-
-          return val;
-        }, { something: "test" });
+            return val;
+          },
+          { something: "test" },
+        );
       });
 
       it("not recive context with arrow function", () => {
         const btree = initBtree();
 
-        btree.forEachReverse((val) => {
+        btree.forEachReverse(
+          val => {
+            expect(this).toMatchObject({});
+            // @ts-expect-error 2532
+            expect(this.test).toBe(undefined);
 
-          expect(this).toMatchObject({});
-          expect(this.test).toBe(undefined);
-
-          return val;
-        }, { test: "test" });
+            return val;
+          },
+          { test: "test" },
+        );
       });
 
       it("has Object context with arrow function", () => {
         const btree = initBtree();
 
-        btree.forEachReverse((val) => {
-
+        btree.forEachReverse(val => {
           expect(this).toMatchObject({});
 
           return val;
@@ -578,7 +589,7 @@ describe('Traverse', () => {
       it("has global context with basic function", () => {
         const btree = initBtree();
 
-        btree.forEachReverse(function(val) {
+        btree.forEachReverse(function (this: any, val) {
           expect(this.process).toBeDefined();
           expect(this.process.nextTick).toBeDefined();
           expect(this.setTimeout).toBeDefined();
@@ -587,15 +598,16 @@ describe('Traverse', () => {
         });
       });
 
-      it('throw error if few arguments', () => {
+      it("throw error if few arguments", () => {
         const btree = initBtree();
 
+        // @ts-expect-error 2554
         expect(() => btree.forEachReverse()).toThrow(MSG_TOO_FEW_ARGUMENTS);
       });
     });
 
-    describe('forEach()', () => {
-      it('Should be iterable by forEach()', () => {
+    describe("forEach()", () => {
+      it("Should be iterable by forEach()", () => {
         const btree = new BTree(comparator);
 
         btree.set("50", 51);
@@ -605,15 +617,15 @@ describe('Traverse', () => {
         const check = [
           {
             key: "15",
-            val: 150
+            val: 150,
           },
           {
             key: "30",
-            val: 30
+            val: 30,
           },
           {
             key: "50",
-            val: 51
+            val: 51,
           },
         ];
 
@@ -627,19 +639,19 @@ describe('Traverse', () => {
         });
       });
 
-      it('has value first arg', () => {
+      it("has value first arg", () => {
         const btree = initBtree();
 
         const check = [150, 30, 50];
 
         const checkIterator = check[Symbol.iterator]();
 
-        btree.forEach((val) => {
+        btree.forEach(val => {
           expect(val).toBe(checkIterator.next().value);
         });
       });
 
-      it('has key second arg', () => {
+      it("has key second arg", () => {
         const btree = initBtree();
 
         const check = ["15", "30", "50"];
@@ -664,31 +676,35 @@ describe('Traverse', () => {
       it("recive context with basic function", () => {
         const btree = initBtree();
 
-        btree.forEach(function(val) {
+        btree.forEach(
+          function (this: any, val) {
+            expect(this.something).toBe("test");
 
-          expect(this.something).toBe("test");
-
-          return val;
-        }, { something: "test" });
+            return val;
+          },
+          { something: "test" },
+        );
       });
 
       it("not recive context with arrow function", () => {
         const btree = initBtree();
 
-        btree.forEach((val) => {
+        btree.forEach(
+          val => {
+            expect(this).toMatchObject({});
+            // @ts-expect-error 2532
+            expect(this.test).toBe(undefined);
 
-          expect(this).toMatchObject({});
-          expect(this.test).toBe(undefined);
-
-          return val;
-        }, { test: "test" });
+            return val;
+          },
+          { test: "test" },
+        );
       });
 
       it("has Object context with arrow function", () => {
         const btree = initBtree();
 
-        btree.forEach((val) => {
-
+        btree.forEach(val => {
           expect(this).toMatchObject({});
 
           return val;
@@ -698,7 +714,7 @@ describe('Traverse', () => {
       it("has global context with basic function", () => {
         const btree = initBtree();
 
-        btree.forEach(function(val) {
+        btree.forEach(function (this: any, val) {
           expect(this.process).toBeDefined();
           expect(this.process.nextTick).toBeDefined();
           expect(this.setTimeout).toBeDefined();
@@ -707,16 +723,17 @@ describe('Traverse', () => {
         });
       });
 
-      it('throw error if few arguments', () => {
+      it("throw error if few arguments", () => {
         const btree = initBtree();
 
+        // @ts-expect-error 2554
         expect(() => btree.forEach()).toThrow(MSG_TOO_FEW_ARGUMENTS);
       });
-
     });
 
+    // @ts-expect-error 2339
     describe.modern("Itrators", () => {
-      it('Should be iterable by for-of', () => {
+      it("Should be iterable by for-of", () => {
         const btree = new BTree(comparator);
 
         btree.set("50", 51);
@@ -726,15 +743,15 @@ describe('Traverse', () => {
         const check = [
           {
             key: "15",
-            val: 150
+            val: 150,
           },
           {
             key: "30",
-            val: 30
+            val: 30,
           },
           {
             key: "50",
-            val: 51
+            val: 51,
           },
         ];
 
@@ -748,7 +765,7 @@ describe('Traverse', () => {
         }
       });
 
-      it('Should be iterable by entries()', () => {
+      it("Should be iterable by entries()", () => {
         const btree = new BTree(comparator);
 
         btree.set("50", 51);
@@ -758,15 +775,15 @@ describe('Traverse', () => {
         const check = [
           {
             key: "15",
-            val: 150
+            val: 150,
           },
           {
             key: "30",
-            val: 30
+            val: 30,
           },
           {
             key: "50",
-            val: 51
+            val: 51,
           },
         ];
 
@@ -783,7 +800,7 @@ describe('Traverse', () => {
         }
       });
 
-      it('Should be iterable by values()', () => {
+      it("Should be iterable by values()", () => {
         const btree = new BTree(comparator);
 
         btree.set("50", 51);
@@ -793,15 +810,15 @@ describe('Traverse', () => {
         const check = [
           {
             key: "15",
-            val: 150
+            val: 150,
           },
           {
             key: "30",
-            val: 30
+            val: 30,
           },
           {
             key: "50",
-            val: 51
+            val: 51,
           },
         ];
 
@@ -817,7 +834,7 @@ describe('Traverse', () => {
         }
       });
 
-      it('Should be iterable by keys()', () => {
+      it("Should be iterable by keys()", () => {
         const btree = new BTree(comparator);
 
         btree.set("50", 51);
@@ -827,15 +844,15 @@ describe('Traverse', () => {
         const check = [
           {
             key: "15",
-            val: 150
+            val: 150,
           },
           {
             key: "30",
-            val: 30
+            val: 30,
           },
           {
             key: "50",
-            val: 51
+            val: 51,
           },
         ];
 
@@ -851,7 +868,7 @@ describe('Traverse', () => {
         }
       });
 
-      it('Should be iterable if empty', () => {
+      it("Should be iterable if empty", () => {
         const btree = new BTree(comparator);
 
         const result = btree.entries().next();
@@ -860,14 +877,11 @@ describe('Traverse', () => {
         expect(result.done).toBe(true);
       });
     });
-
   });
-
 });
 
-describe('Extra methods', () => {
+describe("Extra methods", () => {
   describe("filter()", () => {
-
     it("filter() is callable", () => {
       const btree = initBtree();
 
@@ -877,22 +891,19 @@ describe('Extra methods', () => {
     it("filter() returns BTree", () => {
       const btree = initBtree();
 
-      expect(btree.filter(() => true).constructor.name)
-        .toBe("BTree");
+      expect(btree.filter(() => true).constructor.name).toBe("BTree");
     });
 
     it("filter() returns all items", () => {
       const btree = initBtree();
 
-      expect(btree.filter(() => true).size)
-        .toBe(3);
+      expect(btree.filter(() => true).size).toBe(3);
     });
 
     it("filter() returns 0 items", () => {
       const btree = initBtree();
 
-      expect(btree.filter(() => false).size)
-        .toBe(0);
+      expect(btree.filter(() => false).size).toBe(0);
     });
 
     it("filter() callback has first value arg", () => {
@@ -900,8 +911,10 @@ describe('Extra methods', () => {
 
       const it = initGenerator();
 
-      btree.filter((val) => {
+      btree.filter(val => {
         expect(val).toBe(it.next().value.value);
+
+        return true;
       });
     });
 
@@ -912,6 +925,8 @@ describe('Extra methods', () => {
 
       btree.filter((_val, key) => {
         expect(key).toBe(it.next().value.key);
+
+        return true;
       });
     });
 
@@ -922,26 +937,30 @@ describe('Extra methods', () => {
 
       btree.filter((_val, _key, idx) => {
         expect(idx).toBe(i++);
+
+        return true;
       });
     });
 
     it("filter() recives the context with basic function", () => {
       const btree = initBtree();
 
-      btree.filter(function(val) {
+      btree.filter(
+        function (this: any, val) {
+          expect(this.test).toBe("test");
 
-        expect(this.test).toBe("test");
-
-        return val;
-      }, { test: "test" });
+          return Boolean(val);
+        },
+        { test: "test" },
+      );
     });
   });
 
-  describe('reduce()', () => {
+  describe("reduce()", () => {
     it("reduce() is callable & returns valid value for numbers", () => {
       const btree = initBtree();
 
-      const result = btree.reduce((acc, val, _key, _idx, _btree) => {
+      const result = btree.reduce<number>((acc, val, _key, _idx, _btree) => {
         return acc + val;
       }, 3);
 
@@ -951,7 +970,7 @@ describe('Extra methods', () => {
     it("reduce() callback should have first value arg", () => {
       const btree = initBtree();
 
-      const array = btree.reduce((acc, val) => {
+      const array = btree.reduce<number[]>((acc, val) => {
         acc.push(val);
 
         return acc;
@@ -964,7 +983,7 @@ describe('Extra methods', () => {
     it("reduce() callback should have second key arg", () => {
       const btree = initBtree();
 
-      const str = btree.reduce((acc, _val, key) => {
+      const str = btree.reduce<string>((acc, _val, key) => {
         return acc + key;
       }, "");
 
@@ -975,7 +994,7 @@ describe('Extra methods', () => {
     it("reduce() callback should have third idx arg", () => {
       const btree = initBtree();
 
-      const array = btree.reduce((acc, _val, _key, idx) => {
+      const array = btree.reduce<number[]>((acc, _val, _key, idx) => {
         acc.push(idx);
 
         return acc;
@@ -991,25 +1010,21 @@ describe('Extra methods', () => {
     it("reduce() callback should have fourth bTree arg", () => {
       const btree = initBtree();
 
-      const result = btree.reduce((_acc, _val, _key, _idx, btree) => btree, null);
+      const result = btree.reduce<BTree<string, number>>((_acc, _val, _key, _idx, btree) => btree, null);
 
       expect(result).toBeInstanceOf(BTree);
       expect(result.size).toBe(3);
       expect(result.get("15")).toBe(150);
     });
 
-    it('reduce() should throw error if few arguments', () => {
+    it("reduce() should throw error if few arguments", () => {
       const btree = initBtree();
-
 
       expect(() => btree.reduce((acc, val) => val)).toThrow(MSG_TOO_FEW_ARGUMENTS);
     });
-
   });
 
-
-  describe('map()', () => {
-
+  describe("map()", () => {
     it("map() is callable & returns an array", () => {
       const btree = initBtree();
 
@@ -1062,31 +1077,35 @@ describe('Extra methods', () => {
     it("map() recives the context with basic function", () => {
       const btree = initBtree();
 
-      btree.map(function(val) {
+      btree.map(
+        function (this: any, val) {
+          expect(this.test).toBe("test");
 
-        expect(this.test).toBe("test");
-
-        return val;
-      }, { test: "test" });
+          return val;
+        },
+        { test: "test" },
+      );
     });
 
     it("map() does not recive context with arrow function", () => {
       const btree = initBtree();
 
-      btree.map((val) => {
+      btree.map(
+        val => {
+          expect(this).toMatchObject({});
+          // @ts-expect-error 2532
+          expect(this.test).toBe(undefined);
 
-        expect(this).toMatchObject({});
-        expect(this.test).toBe(undefined);
-
-        return val;
-      }, { test: "test" });
+          return val;
+        },
+        { test: "test" },
+      );
     });
 
     it("map() has Object context with arrow function", () => {
       const btree = initBtree();
 
-      btree.map((val) => {
-
+      btree.map(val => {
         expect(this).toMatchObject({});
 
         return val;
@@ -1096,7 +1115,7 @@ describe('Extra methods', () => {
     it("map() has global context with basic function", () => {
       const btree = initBtree();
 
-      btree.map(function(val) {
+      btree.map(function (this: any, val) {
         expect(this.process).toBeDefined();
         expect(this.process.nextTick).toBeDefined();
         expect(this.setTimeout).toBeDefined();
@@ -1105,16 +1124,17 @@ describe('Extra methods', () => {
       });
     });
 
-    it('map() throw error if few arguments', () => {
+    it("map() throw error if few arguments", () => {
       const btree = initBtree();
 
+      // @ts-expect-error 2554
       expect(() => btree.map()).toThrow(MSG_TOO_FEW_ARGUMENTS);
     });
 
-    it('has the ability to remove node in the callback', () => {
+    it("has the ability to remove node in the callback", () => {
       const btree = initBtree();
 
-      const result = btree.map((v) => {
+      const result = btree.map(v => {
         btree.delete("30");
 
         return v;
@@ -1125,34 +1145,33 @@ describe('Extra methods', () => {
       expect(result[2]).toBeUndefined();
     });
 
+    // @ts-expect-error 2339
     describe.modern("Extraction methods", () => {
-      let btree;
+      let btree: BTree<string, number>;
 
       beforeEach(() => {
         btree = initBtree();
       });
 
       describe("getKeys()", () => {
-        it('method callable', () => {
+        it("method callable", () => {
           expect(typeof btree.getKeys).toBe("function");
         });
 
-        it('result is array', () => {
+        it("result is array", () => {
           const result = btree.getKeys();
 
           expect(result.constructor.name).toBe("Array");
         });
 
-        it('result is array of numbers', () => {
+        it("result is array of numbers", () => {
           const result = btree.getKeys();
 
           expect(result[0]).toBe("15");
         });
 
-        it('return expected result', () => {
-          const arr = [
-            "15", "30", "50"
-          ];
+        it("return expected result", () => {
+          const arr = ["15", "30", "50"];
 
           const result = btree.getKeys();
           const it = arr[Symbol.iterator]();
@@ -1166,7 +1185,7 @@ describe('Extra methods', () => {
           }
         });
 
-        it('return expected result for empty tree', () => {
+        it("return expected result for empty tree", () => {
           btree = new BTree(comparator);
 
           const result = btree.getKeys();
@@ -1176,26 +1195,24 @@ describe('Extra methods', () => {
       });
 
       describe("getValues()", () => {
-        it('method callable', () => {
+        it("method callable", () => {
           expect(typeof btree.getValues).toBe("function");
         });
 
-        it('result is array', () => {
+        it("result is array", () => {
           const result = btree.getValues();
 
           expect(result.constructor.name).toBe("Array");
         });
 
-        it('result is array of numbers', () => {
+        it("result is array of numbers", () => {
           const result = btree.getValues();
 
           expect(result[0]).toBe(150);
         });
 
-        it('return expected result', () => {
-          const arr = [
-            150, 30, 50
-          ];
+        it("return expected result", () => {
+          const arr = [150, 30, 50];
 
           const result = btree.getValues();
           const it = arr[Symbol.iterator]();
@@ -1209,7 +1226,7 @@ describe('Extra methods', () => {
           }
         });
 
-        it('return expected result for empty tree', () => {
+        it("return expected result for empty tree", () => {
           btree = new BTree(comparator);
 
           const result = btree.getValues();

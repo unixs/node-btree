@@ -9,3 +9,6 @@ tmp/
 lib/binding/
 coverage/
 .github/
+Makefile
+.dockerignore
+docker/

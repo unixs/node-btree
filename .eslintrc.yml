@@ -9,15 +9,20 @@ parserOptions:
   sourceType: module
   ecmaFeatures:
     jsx: false
+parser: '@typescript-eslint/parser'
 extends:
   - eslint:recommended
+  - plugin:@typescript-eslint/recommended
   - plugin:jest/recommended
+  - plugin:prettier/recommended
+  - prettier
 plugins:
   - jest
+  - '@typescript-eslint'
 
 rules:
   indent:
-    - warn
+    - off
     - 2
     - SwitchCase: 1
       VariableDeclarator:
@@ -37,7 +42,7 @@ rules:
     - always
     - omitLastInOneLineBlock: true
   no-unused-vars:
-    - error
+    - off
     - argsIgnorePattern: "^_"
   no-extra-semi: warn
   no-extra-boolean-cast: error
@@ -67,11 +72,6 @@ rules:
     - always
   keyword-spacing:
     - error
-  space-before-function-paren:
-    - error
-    - anonymous: never
-      named: never
-      asyncArrow: always
   space-before-blocks:
     - error
   rest-spread-spacing:
@@ -102,10 +102,6 @@ rules:
   prefer-arrow-callback:
     - warn
     - allowNamedFunctions: true
-  arrow-parens:
-    - error
-    - as-needed
-    - requireForBlockBody: true
   arrow-spacing:
     - error
   block-spacing:
@@ -126,3 +122,12 @@ rules:
       after: true
   jest/no-disabled-tests:
     - 0
+  "@typescript-eslint/no-unused-vars":
+    - error
+    - args: all
+      argsIgnorePattern: ^_
+      caughtErrors: all
+      caughtErrorsIgnorePattern: ^_
+      destructuredArrayIgnorePattern: ^_
+      varsIgnorePattern: ^_
+      ignoreRestSiblings: true
