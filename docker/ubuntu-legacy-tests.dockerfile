@@ -4,7 +4,7 @@ ENV TZ=UTC
 ENV DEV_USER=developer
 ENV DEV_HOME=/home/${DEV_USER}
 ENV DEV_PATH=${DEV_HOME}/dev
-ENV NODE_VERSION=18
+ENV NODE_VERSION=20
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
   echo $TZ > /etc/timezone && \

@@ -4,19 +4,18 @@ const char *msgTooFewArguments = "Too few arguments.";
 const char *msgCorrupt = "BTree corrupt. Next node expected but it is null.";
 
 void
-nativeInsertNode(napi_env env, napi_value esBtree, napi_value box) {
+nativeInsertNode(napi_env env, napi_value esBtree, napi_value box)
+{
   BTree_t *bTree;
 
   // NOTE: Memory policy: New es and  create new native wrapper
 
   // Extract native BTree pointer
-  NAPI_CALL(env, false,
-    napi_unwrap(env, esBtree, (void **) &bTree));
+  NAPI_CALL(env, false, napi_unwrap(env, esBtree, (void **) &bTree));
 
   // Set ref counter to 1 for protect from GC
   napi_ref nodeRef;
-  NAPI_CALL(env, false,
-    napi_create_reference(env, box, 1, &nodeRef));
+  NAPI_CALL(env, false, napi_create_reference(env, box, 1, &nodeRef));
 
   // Alloc new tree node
   BTreeNode node;
@@ -27,7 +26,8 @@ nativeInsertNode(napi_env env, napi_value esBtree, napi_value box) {
 }
 
 napi_value
-getEsUndef(napi_env env) {
+getEsUndef(napi_env env)
+{
   napi_value esUndef;
   NAPI_CALL(env, false, napi_get_undefined(env, &esUndef));
 
@@ -35,7 +35,8 @@ getEsUndef(napi_env env) {
 }
 
 napi_value
-getEsNull(napi_env env) {
+getEsNull(napi_env env)
+{
   napi_value esNull;
   NAPI_CALL(env, false, napi_get_null(env, &esNull));
 
@@ -43,29 +44,28 @@ getEsNull(napi_env env) {
 }
 
 napi_value
-getEsGlobal(napi_env env) {
+getEsGlobal(napi_env env)
+{
   napi_value result;
-  NAPI_CALL(env, true,
-    napi_get_global(env, &result));
+  NAPI_CALL(env, true, napi_get_global(env, &result));
 
   return result;
 }
 
 napi_value
-unrefBtreeNodeEsObject(napi_env env, napi_ref ref, napi_value *key, napi_value *value) {
+unrefBtreeNodeEsObject(napi_env env, napi_ref ref, napi_value *key,
+                       napi_value *value)
+{
   napi_value result;
 
-  NAPI_CALL(env, false,
-    napi_get_reference_value(env, ref, &result));
+  NAPI_CALL(env, false, napi_get_reference_value(env, ref, &result));
 
   if (key) {
-    NAPI_CALL(env, false,
-      napi_get_named_property(env, result, KEY, key));
+    NAPI_CALL(env, false, napi_get_named_property(env, result, KEY, key));
   }
 
   if (value) {
-    NAPI_CALL(env, false,
-      napi_get_named_property(env, result, VALUE, value));
+    NAPI_CALL(env, false, napi_get_named_property(env, result, VALUE, value));
   }
 
   return result;
@@ -84,7 +84,7 @@ to_ptr_array_cb(gpointer a, gpointer b, gpointer data)
 }
 
 
-GPtrArray*
+GPtrArray *
 gtreeToPtrArray(GTree *gtree)
 {
   gint tree_size = g_tree_nnodes(gtree);
@@ -98,13 +98,13 @@ gtreeToPtrArray(GTree *gtree)
 
 // TODO: possible inline
 napi_ref
-cloneInternalEsRef(napi_env env, napi_ref ref) {
+cloneInternalEsRef(napi_env env, napi_ref ref)
+{
   napi_ref result;
 
   napi_value box = cloneInternalEsObject(env, ref);
 
-  NAPI_CALL(env, false,
-    napi_create_reference(env, box, 1, &result));
+  NAPI_CALL(env, false, napi_create_reference(env, box, 1, &result));
 
   return result;
 }
@@ -112,13 +112,14 @@ cloneInternalEsRef(napi_env env, napi_ref ref) {
 #ifdef HAS_GTREE_NODE
 
 napi_value
-getNodeEsObject(napi_env env, GTreeNode *g_node) {
+getNodeEsObject(napi_env env, GTreeNode *g_node)
+{
   if (g_node) {
     napi_value result;
     BTreeNode node = (BTreeNode) g_tree_node_value(g_node);
 
     NAPI_CALL(env, false,
-      napi_get_reference_value(env, node->esKeyValue, &result));
+              napi_get_reference_value(env, node->esKeyValue, &result));
 
     return result;
   }
@@ -128,17 +129,17 @@ getNodeEsObject(napi_env env, GTreeNode *g_node) {
 }
 
 napi_value
-getNodeEsField(napi_env env, GTreeNode *g_node, const char *field) {
+getNodeEsField(napi_env env, GTreeNode *g_node, const char *field)
+{
   if (g_node) {
     napi_valuetype resType;
     napi_value result = getNodeEsObject(env, g_node);
 
-    NAPI_CALL(env, false,
-      napi_typeof(env, result, &resType));
+    NAPI_CALL(env, false, napi_typeof(env, result, &resType));
 
     if (resType != napi_undefined) {
       NAPI_CALL(env, false,
-        napi_get_named_property(env, result, field, &result));
+                napi_get_named_property(env, result, field, &result));
 
       return result;
     }
@@ -152,17 +153,18 @@ getNodeEsField(napi_env env, GTreeNode *g_node, const char *field) {
 }
 
 napi_value
-getNodeEsFieldPair(napi_env env, GTreeNode *g_node) {
+getNodeEsFieldPair(napi_env env, GTreeNode *g_node)
+{
   if (g_node) {
     napi_value array;
 
     NAPI_CALL(env, false, napi_create_array_with_length(env, 2, &array));
 
     NAPI_CALL(env, false,
-      napi_set_element(env, array, 0, getNodeEsKey(env, g_node)));
+              napi_set_element(env, array, 0, getNodeEsKey(env, g_node)));
 
     NAPI_CALL(env, false,
-      napi_set_element(env, array, 1, getNodeEsValue(env, g_node)));
+              napi_set_element(env, array, 1, getNodeEsValue(env, g_node)));
 
     return array;
   }
@@ -171,30 +173,26 @@ getNodeEsFieldPair(napi_env env, GTreeNode *g_node) {
   }
 }
 
-GTreeNode*
-btreeLookup(napi_env env, BTree_t *btree, napi_value key) {
+GTreeNode *
+btreeLookup(napi_env env, BTree_t *btree, napi_value key)
+{
   napi_value lookupBox;
   napi_ref lookupRef;
 
-  NAPI_CALL(env, false,
-    napi_create_object(env, &lookupBox));
+  NAPI_CALL(env, false, napi_create_object(env, &lookupBox));
 
-  NAPI_CALL(env, false,
-    napi_set_named_property(env, lookupBox, KEY, key));
+  NAPI_CALL(env, false, napi_set_named_property(env, lookupBox, KEY, key));
 
-  NAPI_CALL(env, false,
-    napi_create_reference(env, lookupBox, 0, &lookupRef));
+  NAPI_CALL(env, false, napi_create_reference(env, lookupBox, 0, &lookupRef));
 
-  BTreeNode_t lookupNode = {
-    lookupRef,
-    NULL
-  };
+  BTreeNode_t lookupNode = {lookupRef, NULL};
 
   return g_tree_lookup_node(btree->nativeTree, &lookupNode);
 }
 
 napi_value
-cloneBtreeWrapper(napi_env env, napi_value orig, BTree_t **newBTreePtr) {
+cloneBtreeWrapper(napi_env env, napi_value orig, BTree_t **newBTreePtr)
+{
   extern napi_ref btreeConstructorRef;
   napi_value result, comparator, constructor;
   BTree_t *origBTree;
@@ -203,14 +201,14 @@ cloneBtreeWrapper(napi_env env, napi_value orig, BTree_t **newBTreePtr) {
   EXTRACT_BTREE(env, orig, origBTree);
 
   NAPI_CALL(env, true,
-    napi_get_reference_value(env, btreeConstructorRef, &constructor));
+            napi_get_reference_value(env, btreeConstructorRef, &constructor));
 
   NAPI_CALL(env, true,
-    napi_get_reference_value(env, origBTree->comparator, &comparator));
+            napi_get_reference_value(env, origBTree->comparator, &comparator));
 
   // TODO: Check constructor ref. Can we increment counter only?
   NAPI_CALL(env, true,
-    napi_new_instance(env, constructor, 1, &comparator, &result));
+            napi_new_instance(env, constructor, 1, &comparator, &result));
 
   // Pass btree ptr in out
   if (newBTreePtr) {
@@ -221,26 +219,25 @@ cloneBtreeWrapper(napi_env env, napi_value orig, BTree_t **newBTreePtr) {
 }
 
 napi_value
-cloneInternalEsObject(napi_env env, napi_ref ref) {
+cloneInternalEsObject(napi_env env, napi_ref ref)
+{
   napi_value result, key, value;
 
-  NAPI_CALL(env, false,
-    napi_create_object(env, &result));
+  NAPI_CALL(env, false, napi_create_object(env, &result));
 
   unrefBtreeNodeEsObject(env, ref, &key, &value);
 
   // Set key & value to box
-  NAPI_CALL(env, false,
-    napi_set_named_property(env, result, KEY, key));
-  NAPI_CALL(env, false,
-    napi_set_named_property(env, result, VALUE, value));
+  NAPI_CALL(env, false, napi_set_named_property(env, result, KEY, key));
+  NAPI_CALL(env, false, napi_set_named_property(env, result, VALUE, value));
 
   return result;
 }
 
 // TODO: possible inline
 BTreeNode
-cloneBTreeNode(napi_env env, BTree_t *btree, GTreeNode *node) {
+cloneBTreeNode(napi_env env, BTree_t *btree, GTreeNode *node)
+{
   napi_ref origEsNodeRef = getEsGTreeNode(node)->esKeyValue;
   napi_ref newEsNodeRef = cloneInternalEsRef(env, origEsNodeRef);
 

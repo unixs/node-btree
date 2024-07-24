@@ -32,9 +32,12 @@ typedef struct {
 typedef BTreeNode_t* BTreeNode;
 
 BTree_t*
-btreeAlloc(napi_env env);
+allocNativeBTree(napi_env env);
 
 void
 freeNativeBTree(napi_env env, void *finalize_data, void *finalize_hint);
+
+void
+reallocGTree(BTree_t *bTree);
 
 #endif // _TYPE_H_

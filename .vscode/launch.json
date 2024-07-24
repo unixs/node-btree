@@ -8,7 +8,7 @@
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/opt/homebrew/opt/node@18/bin/node",
+      "program": "/opt/homebrew/opt/node@20/bin/node",
       "args": [
         "--expose-gc",
         "test/debug.js"
@@ -35,7 +35,7 @@
       "name": "(gdb) Jest",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/opt/homebrew/opt/node@18/bin/node",
+      "program": "/opt/homebrew/opt/node@20/bin/node",
       "args": [
         "--expose-gc",
         "node_modules/.bin/jest",

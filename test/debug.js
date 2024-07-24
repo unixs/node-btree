@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 const { BTree } = require("..");
 
 function comparator(a, b) {
@@ -11,7 +13,6 @@ function comparator(a, b) {
     return 0;
   }
 }
-
 
 function initBtree() {
   const btree = new BTree(comparator);
@@ -30,7 +31,10 @@ const btree = initBtree();
 
 console.log(btree.toMap(), btree.size);
 
-btree.delete();
+btree.forEach(console.log);
+
+btree.clear();
+
+btree.forEach(console.log);
 
 console.log(btree.toMap(), btree.size);
-

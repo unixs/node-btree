@@ -35,7 +35,7 @@ esConstructor(napi_env env, napi_callback_info cbInfo) {
         return NULL;
     }
 
-    BTree_t *bTree = btreeAlloc(env);
+    BTree_t *bTree = allocNativeBTree(env);
 
     // Create ref on comparator function. Protect from GC
     NAPI_CALL(env, false,
