@@ -7,21 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-* seachAfter()
-* searchBefore()
-* searchBetween()
 * INT btree without ES comparator fun-on
-* reverseIterator()
-* modern clear function
+
+## [0.9.0] - 2024-07-24
+
+### Changed
+
+* refactoring
+
+### Added
+
+* types declarations
+
+### Fixed
+
+* clear() method bug
 
 ## [0.8.0] - 2023-03-02
 
-## Changed
+### Changed
 
 * Lot of changes in tests
 * Bugfix for building fail for GLIB < 2.68
 
-## Added
+### Added
 
 * toArray()
 * toArrays()
