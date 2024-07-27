@@ -26,7 +26,7 @@ nativeBTreeForEach(gpointer key, gpointer val, gpointer data)
 
   NAPI_CALL(env, false, napi_create_int64(env, ctxt->idx, &esIdx));
 
-  napi_value argv[] = {esValue, esKey, esIdx};
+  napi_value argv[] = {esValue, esKey, ctxt->esbTree, esIdx};
 
   NAPI_CALL(env, false, napi_get_null(env, &esNull));
 

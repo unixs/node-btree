@@ -2,5 +2,6 @@
   "plugins": ["prettier-plugin-brace-style"],
   "braceStyle": "stroustrup",
   "printWidth": 120,
-  "arrowParens": "avoid"
+  "arrowParens": "avoid",
+  "singleQuote": false
 }

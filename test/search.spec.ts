@@ -1,6 +1,7 @@
-const { BTree, GLIB_VERSION: { hasGTreeNode } } = require("..");
+import { BinaryTreeExt, BTree } from "..";
+import { modernDescribe } from "./common";
 
-function comparator(a, b) {
+function comparator(a: number, b: number) {
   if (a > b) {
     return 1;
   }
@@ -13,7 +14,7 @@ function comparator(a, b) {
 }
 
 function initBtree() {
-  const btree = new BTree(comparator);
+  const btree = new BTree<number, number>(comparator);
 
   btree.set(15, 150);
   btree.set(50, 500);
@@ -25,20 +26,18 @@ function initBtree() {
   return btree;
 }
 
-/**
- * Describe cases for GLIB version >= 2.68
- */
-describe["modern"] = hasGTreeNode() ? describe : describe.skip;
+modernDescribe(describe);
 
+// @ts-expect-error 2339
 describe.modern("Search methods", () => {
-  let btree;
+  let btree: BinaryTreeExt<number, number>;
 
   beforeAll(() => {
     btree = initBtree();
   });
 
   describe("first()", () => {
-    let btree;
+    let btree: BinaryTreeExt<number, number>;
 
     beforeAll(() => {
       btree = initBtree();
@@ -63,7 +62,7 @@ describe.modern("Search methods", () => {
   });
 
   describe("last()", () => {
-    let btree;
+    let btree: BinaryTreeExt<number, number>;
 
     beforeAll(() => {
       btree = initBtree();
@@ -101,7 +100,8 @@ describe.modern("Search methods", () => {
         yield { key: 11, value: 110 };
         yield { key: 15, value: 150 };
         yield { key: 30, value: 300 };
-        yield { key: 40, value: 400 };
+
+        return { key: 40, value: 400 };
       }
 
       const it = checkgGenerator();
@@ -122,7 +122,8 @@ describe.modern("Search methods", () => {
       function* checkgGenerator() {
         yield { key: 11, value: 110 };
         yield { key: 15, value: 150 };
-        yield { key: 30, value: 300 };
+
+        return { key: 30, value: 300 };
       }
 
       const it = checkgGenerator();
@@ -139,15 +140,15 @@ describe.modern("Search methods", () => {
       }
     });
 
-    it('return undefined if key not found', () => {
+    it("return undefined if key not found", () => {
       expect(() => btree.before(33)).toThrow("key not found");
     });
 
-    it('return 1 on edge', () => {
+    it("return 1 on edge", () => {
       expect(btree.before(11).size).toBe(1);
     });
 
-    it('return empty on edge with skip', () => {
+    it("return empty on edge with skip", () => {
       expect(btree.before(11, true).size).toBe(0);
     });
   });
@@ -166,7 +167,8 @@ describe.modern("Search methods", () => {
         yield { key: 15, value: 150 };
         yield { key: 30, value: 300 };
         yield { key: 40, value: 400 };
-        yield { key: 45, value: 450 };
+
+        return { key: 45, value: 450 };
       }
 
       const it = checkgGenerator();
@@ -186,7 +188,8 @@ describe.modern("Search methods", () => {
     it("return correct result with skip", () => {
       function* checkgGenerator() {
         yield { key: 30, value: 300 };
-        yield { key: 40, value: 400 };
+
+        return { key: 40, value: 400 };
       }
 
       const it = checkgGenerator();
@@ -203,17 +206,18 @@ describe.modern("Search methods", () => {
       }
     });
 
-    it('throw error if first key not found', () => {
+    it("throw error if first key not found", () => {
       expect(() => btree.between(12, 30)).toThrow("lower key not found in tree");
     });
 
-    it('throw error if second key not found', () => {
+    it("throw error if second key not found", () => {
       expect(() => btree.between(11, 31)).toThrow("upper key not found in tree");
     });
 
-    it('throw error key1 == key2', () => {
+    it("throw error key1 == key2", () => {
+      // eslint-disable-next-line require-yield
       function* checkgGenerator() {
-        yield { key: 30, value: 300 };
+        return { key: 30, value: 300 };
       }
 
       const it = checkgGenerator();
@@ -230,19 +234,20 @@ describe.modern("Search methods", () => {
       }
     });
 
-    it('throw error key1 == key2 with skip', () => {
+    it("throw error key1 == key2 with skip", () => {
       const result = btree.between(30, 30, true);
 
       expect(result.size).toBe(0);
     });
 
-    it('throw error key1 > key2', () => {
+    it("throw error key1 > key2", () => {
       function* checkgGenerator() {
         yield { key: 15, value: 150 };
         yield { key: 30, value: 300 };
         yield { key: 40, value: 400 };
         yield { key: 45, value: 450 };
-        yield { key: 50, value: 500 };
+
+        return { key: 50, value: 500 };
       }
 
       const it = checkgGenerator();
@@ -259,11 +264,12 @@ describe.modern("Search methods", () => {
       }
     });
 
-    it('throw error key1 > key2 with skip', () => {
+    it("throw error key1 > key2 with skip", () => {
       function* checkgGenerator() {
         yield { key: 30, value: 300 };
         yield { key: 40, value: 400 };
-        yield { key: 45, value: 450 };
+
+        return { key: 45, value: 450 };
       }
 
       const it = checkgGenerator();
@@ -283,7 +289,8 @@ describe.modern("Search methods", () => {
     it("return empty result without middle elements", () => {
       function* checkgGenerator() {
         yield { key: 30, value: 300 };
-        yield { key: 40, value: 400 };
+
+        return { key: 40, value: 400 };
       }
 
       const it = checkgGenerator();
@@ -308,7 +315,7 @@ describe.modern("Search methods", () => {
   });
 
   describe("after", () => {
-    let btree;
+    let btree: BinaryTreeExt<number, number>;
 
     beforeEach(() => {
       btree = initBtree();
@@ -317,7 +324,6 @@ describe.modern("Search methods", () => {
     it("is function", () => {
       expect(typeof btree.after).toBe("function");
     });
-
 
     it("return BTree", () => {
       expect(btree.after(30) instanceof BTree).toBe(true);
@@ -328,7 +334,8 @@ describe.modern("Search methods", () => {
         yield { key: 30, value: 300 };
         yield { key: 40, value: 400 };
         yield { key: 45, value: 450 };
-        yield { key: 50, value: 500 };
+
+        return { key: 50, value: 500 };
       }
 
       const it = checkgGenerator();
@@ -349,7 +356,8 @@ describe.modern("Search methods", () => {
       function* checkgGenerator() {
         yield { key: 40, value: 400 };
         yield { key: 45, value: 450 };
-        yield { key: 50, value: 500 };
+
+        return { key: 50, value: 500 };
       }
 
       const it = checkgGenerator();
@@ -366,15 +374,15 @@ describe.modern("Search methods", () => {
       }
     });
 
-    it('return undefined if key not found', () => {
+    it("return undefined if key not found", () => {
       expect(() => btree.after(33)).toThrow("key not found");
     });
 
-    it('return 1 on edge', () => {
+    it("return 1 on edge", () => {
       expect(btree.after(50).size).toBe(1);
     });
 
-    it('return empty on edge with skip', () => {
+    it("return empty on edge with skip", () => {
       expect(btree.after(50, true).size).toBe(0);
     });
   });

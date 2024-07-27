@@ -1,7 +1,6 @@
-import { BTree, GLIB_VERSION } from "..";
+import { BTree } from "..";
 
-// @ts-ignore
-describe["modern"] = GLIB_VERSION.hasGTreeNode() ? describe : describe.skip;
+import { modernDescribe } from "./common";
 
 function comparator(a: number, b: number) {
   if (a > b) {
@@ -27,6 +26,8 @@ function initBtree() {
   return btree;
 }
 
+modernDescribe(describe);
+
 describe("Conversion methods", () => {
   let btree: BTree<number, number>;
 
@@ -36,9 +37,8 @@ describe("Conversion methods", () => {
 
   it.todo("Dummy test");
 
-// @ts-ignore
+  // @ts-expect-error 2339
   describe.modern("Modern methods", () => {
-
     describe("toMap()", () => {
       it("toMap() should be callable", () => {
         const btree = initBtree();
@@ -58,7 +58,7 @@ describe("Conversion methods", () => {
         const map = btree.toMap();
 
         expect(map.get(50)).toBe(500);
-        expect(map.get(20)).toBe(200);
+        expect(map.get(150)).toBe(1500);
         expect(map.get(30)).toBe(300);
       });
     });
@@ -89,29 +89,29 @@ describe("Conversion methods", () => {
     });
 
     describe("toArrays()", () => {
-      it('method callable', () => {
+      it("method callable", () => {
         expect(typeof btree.toArrays).toBe("function");
       });
 
-      it('result is array', () => {
+      it("result is array", () => {
         const result = btree.toArrays();
 
         expect(result.constructor.name).toBe("Array");
       });
 
-      it('result is array of arrays', () => {
+      it("result is array of arrays", () => {
         const result = btree.toArrays();
 
         expect(result[0].constructor.name).toBe("Array");
       });
 
-      it('return expected result', () => {
+      it("return expected result", () => {
         const arr = [
           [10, 100],
           [20, 200],
           [30, 300],
           [50, 500],
-          [150, 1500]
+          [150, 1500],
         ];
 
         const result = btree.toArrays();
@@ -127,7 +127,7 @@ describe("Conversion methods", () => {
         }
       });
 
-      it('return expected result for empty tree', () => {
+      it("return expected result for empty tree", () => {
         btree = new BTree(comparator);
 
         const result = btree.toArrays();
@@ -137,23 +137,23 @@ describe("Conversion methods", () => {
     });
 
     describe("toArray()", () => {
-      it('method callable', () => {
+      it("method callable", () => {
         expect(typeof btree.toArray).toBe("function");
       });
 
-      it('result is array', () => {
+      it("result is array", () => {
         const result = btree.toArray();
 
         expect(result.constructor.name).toBe("Array");
       });
 
-      it('result is array of objects', () => {
+      it("result is array of objects", () => {
         const result = btree.toArray();
 
         expect(result[0].constructor.name).toBe("Object");
       });
 
-      it('return expected result', () => {
+      it("return expected result", () => {
         const arr = [
           { key: 10, value: 100 },
           { key: 20, value: 200 },
@@ -175,7 +175,7 @@ describe("Conversion methods", () => {
         }
       });
 
-      it('return expected result for empty tree', () => {
+      it("return expected result for empty tree", () => {
         btree = new BTree(comparator);
 
         const result = btree.toArray();
@@ -185,30 +185,24 @@ describe("Conversion methods", () => {
     });
 
     describe("flatten()", () => {
-      it('method callable', () => {
+      it("method callable", () => {
         expect(typeof btree.flatten).toBe("function");
       });
 
-      it('result is array', () => {
+      it("result is array", () => {
         const result = btree.flatten();
 
         expect(result.constructor.name).toBe("Array");
       });
 
-      it('result is array of numbers', () => {
+      it("result is array of numbers", () => {
         const result = btree.flatten();
 
         expect(typeof result[0]).toBe("number");
       });
 
-      it('return expected result', () => {
-        const arr = [
-          10, 100,
-          20, 200,
-          30, 300,
-          50, 500,
-          150, 1500,
-        ];
+      it("return expected result", () => {
+        const arr = [10, 100, 20, 200, 30, 300, 50, 500, 150, 1500];
 
         const result = btree.flatten();
         const it = arr[Symbol.iterator]();
@@ -222,7 +216,7 @@ describe("Conversion methods", () => {
         }
       });
 
-      it('return expected result for empty tree', () => {
+      it("return expected result for empty tree", () => {
         btree = new BTree(comparator);
 
         const result = btree.toArray();
