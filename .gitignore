@@ -60,3 +60,5 @@ lib/binding
 coverage/
 .DS_Store
 Testing/
+cmake-build*/
+

@@ -4,7 +4,7 @@
   },
   "cmake.buildTask": false,
   "cmake.configureEnvironment": {
-    "CMAKE_JS_INC": "${userHome}/.cmake-js/node-arm64/v18.16.1/include/node"
+    "CMAKE_JS_INC": "${userHome}/.cmake-js/node-x64/v22.16.0/include/node"
   },
   "jest.nodeEnv": {
     "NODE_ENV": "development"
